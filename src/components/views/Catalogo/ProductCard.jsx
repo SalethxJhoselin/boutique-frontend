@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth'; 
 import { useCart } from '../../../context/CartContext';
+import { useBusquedas } from '../../../hooks/useBusquedas';
 
 const ProductCard = ({ product, onSelect }) => {
-  const [quantity, setQuantity] = useState(1); // Estado para manejar la cantidad
+  const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
-  const { userId } = useAuth(); // Obtener el userId del contexto de autenticación
+  const { user } = useAuth();
+  const { crearBusqueda } = useBusquedas(user?.id);
 
   // Función para manejar el cambio en el input, asegurando solo números
   const handleQuantityChange = (e) => {
@@ -15,24 +17,23 @@ const ProductCard = ({ product, onSelect }) => {
     }
   };
 
-  // Función para registrar la búsqueda (cuando el backend esté listo)
-  const registerSearch = async (productId) => {
-    if (!userId) {
-      console.warn("⚠️ El usuario no está autenticado, no se registrará la búsqueda.");
+  // Función para registrar la búsqueda con GraphQL
+  const registerSearch = async (productId, productName) => {
+    if (!user?.id) {
+      console.warn("⚠️ Usuario no autenticado, no se registrará la búsqueda.");
       return;
     }
     try {
-      // TODO: Implementar cuando el backend tenga la mutation de búsqueda
-      // await crearBusqueda({ productId });
-      console.log("🔍 Búsqueda registrada para el producto:", productId);
+      await crearBusqueda(productId, productName);
+      console.log("✅ Búsqueda registrada:", productName);
     } catch (error) {
-      console.error("❌ Error al registrar la búsqueda:", error);
+      console.error("❌ Error al registrar búsqueda:", error);
     }
   };
 
   const handleViewDetails = () => {
-    registerSearch(product.id); // Registrar la búsqueda antes de mostrar los detalles
-    onSelect(product); // Mostrar el detalle del producto
+    registerSearch(product.id, product.name);
+    onSelect(product);
   };
 
   const handleAddToCart = () => {

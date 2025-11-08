@@ -1,132 +1,57 @@
-import { Button, Select, Space, Table, Typography, notification } from 'antd';
-import { useEffect, useState } from 'react';
+import { Button, Select, Space, Table, Typography, notification, Modal, Tag } from 'antd';
+import { useState } from 'react';
+import { useUsuarios } from '../../../hooks/useUsuarios';
+import { useRoles } from '../../../hooks/useRoles';
 
 const { Title } = Typography;
-
-// Datos de prueba para simular usuarios
-const mockUsers = [
-    {
-        id: 1,
-        nombre: "Ana García",
-        email: "ana.garcia@ejemplo.com",
-        roles: [1, 2]
-    },
-    {
-        id: 2,
-        nombre: "Carlos López",
-        email: "carlos.lopez@ejemplo.com",
-        roles: [2]
-    },
-    {
-        id: 3,
-        nombre: "María Rodríguez",
-        email: "maria.rodriguez@ejemplo.com",
-        roles: [3]
-    },
-    {
-        id: 4,
-        nombre: "Pedro Martínez",
-        email: "pedro.martinez@ejemplo.com",
-        roles: [2, 3]
-    },
-    {
-        id: 5,
-        nombre: "Laura Fernández",
-        email: "laura.fernandez@ejemplo.com",
-        roles: [1]
-    }
-];
-
-// Datos de prueba para simular roles
-const mockRoles = [
-    {
-        id: 1,
-        nombre: "Administrador",
-        descripcion: "Acceso completo al sistema"
-    },
-    {
-        id: 2,
-        nombre: "Usuario",
-        descripcion: "Usuario estándar"
-    },
-    {
-        id: 3,
-        nombre: "Moderador",
-        descripcion: "Moderador de contenido"
-    }
-];
+const { confirm } = Modal;
 
 const ManageUsers = () => {
-    const [users, setUsers] = useState([]);
-    const [roles, setRoles] = useState([]);
-    const [editingUserId, setEditingUserId] = useState(null); // Estado para el usuario en edición
-    const [selectedRoleIds, setSelectedRoleIds] = useState([]); // Estado para los roles seleccionados
+    const [editingUserId, setEditingUserId] = useState(null);
+    const [selectedRoleId, setSelectedRoleId] = useState(null);
 
-    // Obtener usuarios registrados y roles disponibles
-    const fetchUsersAndRoles = async () => {
-        try {
-            // SIMULACIÓN: Reemplazar estas líneas con las peticiones reales cuando estén disponibles
-            // const [usersData, rolesData] = await Promise.all([
-            //     api.get("/usuarios/"),
-            //     api.get("/roles/")
-            // ]);
+    const { usuarios, loading: loadingUsuarios, asignarRoles, eliminarUsuario } = useUsuarios();
+    const { roles, loading: loadingRoles } = useRoles();
 
-            // Simulación temporal
-            const usersData = { data: mockUsers };
-            const rolesData = { data: mockRoles };
-
-            setUsers(usersData.data);
-            setRoles(rolesData.data);
-        } catch (error) {
-            notification.error({
-                message: 'Error al obtener datos',
-                description: error.response?.data?.detail || error.message,
-            });
-        }
-    };
-
-    useEffect(() => {
-        fetchUsersAndRoles();
-    }, []);
-
-    // Guardar los nuevos roles del usuario
     const handleSaveRole = async (userId) => {
-        if (!selectedRoleIds.length) {
-            notification.warning({ message: 'Debe seleccionar al menos un rol antes de guardar.' });
+        if (!selectedRoleId) {
+            notification.warning({ message: 'Debe seleccionar un rol' });
             return;
         }
 
         try {
-            // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-            // const payload = { rol_ids: selectedRoleIds }; // Payload con múltiples roles
-            // await api.post(`/usuarios/${userId}/actualizar_roles/`, payload);
-
-            // Simulación temporal - actualizar localmente
-            const updatedUsers = users.map(user =>
-                user.id === userId ? { ...user, roles: selectedRoleIds } : user
-            );
-            setUsers(updatedUsers);
-
-            notification.success({ message: 'Roles asignados correctamente.' });
-
-            // Salir del modo de edición
+            await asignarRoles(userId, selectedRoleId);
+            notification.success({ message: '✅ Rol asignado exitosamente' });
             setEditingUserId(null);
-            setSelectedRoleIds([]);
+            setSelectedRoleId(null);
         } catch (error) {
+            console.error('❌ Error al asignar rol:', error);
             notification.error({
-                message: 'Error al asignar los roles',
-                description: error.response?.data?.detail || error.message,
+                message: 'Error al asignar rol',
+                description: error.message,
             });
         }
     };
 
-    // Columnas de la tabla
+    const handleDeleteUser = (userId, userName) => {
+        confirm({
+            title: '¿Estás seguro de eliminar este usuario?',
+            content: `Usuario: ${userName}`,
+            okText: 'Sí, eliminar',
+            okType: 'danger',
+            cancelText: 'Cancelar',
+            async onOk() {
+                try {
+                    await eliminarUsuario(userId);
+                    notification.success({ message: '✅ Usuario eliminado' });
+                } catch (error) {
+                    notification.error({ message: 'Error al eliminar usuario' });
+                }
+            },
+        });
+    };
+
     const columns = [
-        {
-            title: 'ID',
-            dataIndex: 'id',
-            key: 'id',
-        },
         {
             title: 'Nombre',
             dataIndex: 'nombre',
@@ -138,38 +63,50 @@ const ManageUsers = () => {
             key: 'email',
         },
         {
-            title: 'Roles',
-            key: 'roles',
+            title: 'Rol Actual',
+            dataIndex: 'rolNombre',
+            key: 'rolNombre',
+            render: (rolNombre, record) => (
+                <Tag color={record.activo ? 'green' : 'red'}>
+                    {rolNombre || 'Sin rol'}
+                </Tag>
+            ),
+        },
+        {
+            title: 'Estado',
+            dataIndex: 'activo',
+            key: 'activo',
+            render: (activo) => (
+                <Tag color={activo ? 'success' : 'error'}>
+                    {activo ? 'Activo' : 'Inactivo'}
+                </Tag>
+            ),
+        },
+        {
+            title: 'Editar Rol',
+            key: 'editRol',
             render: (_, record) => {
                 if (record.id === editingUserId) {
                     return (
                         <Select
-                            mode="multiple"
-                            style={{ width: '100%' }}
-                            placeholder="Seleccionar Roles"
-                            onChange={(values) => setSelectedRoleIds(values)}
-                            value={selectedRoleIds}
+                            style={{ width: 180 }}
+                            placeholder="Selecciona un rol"
+                            value={selectedRoleId}
+                            onChange={setSelectedRoleId}
+                            loading={loadingRoles}
                         >
-                            {roles.map(role => (
-                                <Select.Option key={role.id} value={role.id}>
-                                    {role.nombre}
+                            {roles.map((rol) => (
+                                <Select.Option key={rol.id} value={rol.id}>
+                                    {rol.nombre}
                                 </Select.Option>
                             ))}
                         </Select>
                     );
                 }
-
                 return (
-                    <Space>
-                        {record.roles.map(roleId => {
-                            const role = roles.find(role => role.id === roleId);
-                            return (
-                                <span key={roleId} className="badge">
-                                    {role?.nombre || `Rol ${roleId}`}
-                                </span>
-                            );
-                        })}
-                    </Space>
+                    <span className="text-gray-400">
+                        {record.rol?.descripcion || 'Sin descripción'}
+                    </span>
                 );
             },
         },
@@ -180,23 +117,32 @@ const ManageUsers = () => {
                 <Space>
                     {record.id === editingUserId ? (
                         <>
-                            <Button type="primary" onClick={() => handleSaveRole(record.id)}>
+                            <Button type="primary" onClick={() => handleSaveRole(record.id)} size="small">
                                 Guardar
                             </Button>
                             <Button onClick={() => {
                                 setEditingUserId(null);
-                                setSelectedRoleIds([]);
-                            }}>
+                                setSelectedRoleId(null);
+                            }} size="small">
                                 Cancelar
                             </Button>
                         </>
                     ) : (
-                        <Button type="primary" onClick={() => {
-                            setEditingUserId(record.id);
-                            setSelectedRoleIds(record.roles || []); // Seleccionar los roles actuales del usuario
-                        }}>
-                            Editar Roles
-                        </Button>
+                        <>
+                            <Button type="primary" onClick={() => {
+                                setEditingUserId(record.id);
+                                setSelectedRoleId(record.rol?.id || null);
+                            }} size="small">
+                                Editar Rol
+                            </Button>
+                            <Button
+                                danger
+                                onClick={() => handleDeleteUser(record.id, record.nombre)}
+                                size="small"
+                            >
+                                Eliminar
+                            </Button>
+                        </>
                     )}
                 </Space>
             ),
@@ -208,9 +154,10 @@ const ManageUsers = () => {
             <Title level={3} className="text-center">Usuarios Registrados</Title>
             <Table
                 columns={columns}
-                dataSource={users}
+                dataSource={usuarios}
                 rowKey="id"
-                pagination={{ pageSize: 5, size: 'small' }}
+                loading={loadingUsuarios}
+                pagination={{ pageSize: 10, size: 'small' }}
                 bordered
             />
         </div>

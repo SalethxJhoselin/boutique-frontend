@@ -1,57 +1,69 @@
 import { Button, Input, Modal, Select, Space, message } from 'antd';
 import { useState } from 'react';
 import { useProducts } from '../../../hooks/useProducts';
+import { useNotasIngreso } from '../../../hooks/useNotasIngreso';
 
 const { Option } = Select;
 
 function CreateNotaIngresoModal({ visible, closeModal, refreshNotas }) {
     const [nota, setNota] = useState({
-        observacion: '',
-        detalles: [], // Detalles de los productos seleccionados
+        proveedor: '',
+        observaciones: '',
+        detalles: [],
     });
 
-    // GraphQL Hook - DATOS REALES DEL BACKEND
     const { products: productos, loading: loadingProductos } = useProducts();
+    const { crearNotaIngreso, loading: creando } = useNotasIngreso();
 
-    // Función para manejar la selección de producto
     const handleAddProducto = (productoId) => {
-        // Verificar si el producto ya está seleccionado
-        if (!nota.detalles.some((detalle) => detalle.producto === productoId)) {
+        if (!nota.detalles.some((detalle) => detalle.productoId === productoId)) {
+            const producto = productos.find(p => p.id === productoId);
             setNota((prevNota) => ({
                 ...prevNota,
                 detalles: [
                     ...prevNota.detalles,
-                    { producto: productoId, cantidad: 1 }, // Valor inicial de cantidad
+                    {
+                        productoId,
+                        cantidad: 1,
+                        precioUnitario: producto?.precio || 0,
+                    },
                 ],
             }));
         }
     };
 
-    // Función para manejar la actualización de la cantidad
     const handleCantidadChange = (productoId, cantidad) => {
         setNota((prevNota) => ({
             ...prevNota,
             detalles: prevNota.detalles.map((detalle) =>
-                detalle.producto === productoId
+                detalle.productoId === productoId
                     ? { ...detalle, cantidad: parseInt(cantidad) }
                     : detalle
             ),
         }));
     };
 
-    // Función para manejar la eliminación de un producto
-    const handleRemoveProducto = (productoId) => {
+    const handlePrecioChange = (productoId, precio) => {
         setNota((prevNota) => ({
             ...prevNota,
-            detalles: prevNota.detalles.filter((detalle) => detalle.producto !== productoId),
+            detalles: prevNota.detalles.map((detalle) =>
+                detalle.productoId === productoId
+                    ? { ...detalle, precioUnitario: parseFloat(precio) }
+                    : detalle
+            ),
         }));
     };
 
-    // Función para crear la nota de ingreso
+    const handleRemoveProducto = (productoId) => {
+        setNota((prevNota) => ({
+            ...prevNota,
+            detalles: prevNota.detalles.filter((detalle) => detalle.productoId !== productoId),
+        }));
+    };
+
     const handleCreateNota = async () => {
-        // Validación básica
-        if (!nota.observacion.trim()) {
-            message.warning('Por favor ingresa una observación');
+        if (!nota.proveedor.trim()) {
+            message.warning('Por favor ingresa el proveedor');
             return;
         }
 
@@ -61,31 +73,19 @@ function CreateNotaIngresoModal({ visible, closeModal, refreshNotas }) {
         }
 
         try {
-            const data = {
-                observacion: nota.observacion,
-                detalles: nota.detalles,
-            };
+            await crearNotaIngreso(
+                nota.proveedor,
+                nota.observaciones,
+                nota.detalles
+            );
 
-            // ⚠️ BACKEND PENDIENTE: Necesitas implementar el módulo de Inventario/NotaIngreso
-            // Cuando esté listo, descomenta estas líneas y crea la mutation:
-            // 
-            // import { useMutation } from '@apollo/client';
-            // import { CREATE_NOTA_INGRESO } from '../../../services/graphql/inventory.queries';
-            // 
-            // const [crearNotaIngreso] = useMutation(CREATE_NOTA_INGRESO);
-            // await crearNotaIngreso({ variables: { input: data } });
-
-            console.log("⚠️ MOCK: Nota de ingreso a crear:", data);
-            message.info('⚠️ Función pendiente: Necesitas implementar backend de Inventario');
-
-            // Una vez implementado el backend, descomenta esto:
-            // message.success('Nota de ingreso creada exitosamente');
-            // refreshNotas();
-            // closeModal();
-            // setNota({ observacion: '', detalles: [] });
+            message.success('✅ Nota de ingreso creada exitosamente');
+            setNota({ proveedor: '', observaciones: '', detalles: [] });
+            if (refreshNotas) refreshNotas();
+            closeModal();
 
         } catch (error) {
-            console.error('Error al crear la nota de ingreso:', error);
+            console.error('❌ Error al crear la nota de ingreso:', error);
             message.error('Error al crear la nota de ingreso');
         }
     };
@@ -93,23 +93,32 @@ function CreateNotaIngresoModal({ visible, closeModal, refreshNotas }) {
     return (
         <Modal
             title="Crear Nota de Ingreso"
-            visible={visible}
+            open={visible}
             onCancel={closeModal}
             footer={[
                 <Button key="cancel" onClick={closeModal}>
                     Cancelar
                 </Button>,
-                <Button key="submit" type="primary" onClick={handleCreateNota}>
+                <Button key="submit" type="primary" onClick={handleCreateNota} loading={creando}>
                     Guardar Nota de Ingreso
                 </Button>,
             ]}
         >
             <div>
-                <h3>Observación:</h3>
+                <h3>Proveedor:</h3>
                 <Input
-                    value={nota.observacion}
-                    onChange={(e) => setNota({ ...nota, observacion: e.target.value })}
-                    placeholder="Ingrese una observación"
+                    value={nota.proveedor}
+                    onChange={(e) => setNota({ ...nota, proveedor: e.target.value })}
+                    placeholder="Nombre del proveedor"
+                    className="mb-3"
+                />
+
+                <h3>Observaciones:</h3>
+                <Input.TextArea
+                    value={nota.observaciones}
+                    onChange={(e) => setNota({ ...nota, observaciones: e.target.value })}
+                    placeholder="Ingrese observaciones (opcional)"
+                    rows={3}
                 />
 
                 <div className="mt-4">
@@ -135,33 +144,57 @@ function CreateNotaIngresoModal({ visible, closeModal, refreshNotas }) {
                         <p className="text-gray-400 text-sm">No hay productos seleccionados</p>
                     ) : (
                         nota.detalles.map((detalle) => {
-                            const producto = productos.find((p) => p.id === detalle.producto);
+                            const producto = productos.find((p) => p.id === detalle.productoId);
                             return (
-                                <div key={detalle.producto} className="mb-4">
-                                    <Space style={{ width: '100%' }} align="baseline">
+                                <div key={detalle.productoId} className="mb-4 p-3 border rounded">
+                                    <Space direction="vertical" style={{ width: '100%' }}>
                                         <span className="font-medium">{producto?.nombre || 'Producto no encontrado'}</span>
-                                        <Input
-                                            type="number"
-                                            min="1"
-                                            value={detalle.cantidad}
-                                            onChange={(e) =>
-                                                handleCantidadChange(detalle.producto, e.target.value)
-                                            }
-                                            style={{ width: 80 }}
-                                            placeholder="Cant."
-                                        />
-                                        <span className="text-gray-500">x ${producto?.precio.toFixed(2)}</span>
-                                        <Button
-                                            type="link"
-                                            danger
-                                            onClick={() => handleRemoveProducto(detalle.producto)}
-                                        >
-                                            Eliminar
-                                        </Button>
+                                        <Space>
+                                            <Input
+                                                type="number"
+                                                min="1"
+                                                value={detalle.cantidad}
+                                                onChange={(e) =>
+                                                    handleCantidadChange(detalle.productoId, e.target.value)
+                                                }
+                                                style={{ width: 80 }}
+                                                placeholder="Cant."
+                                                addonBefore="Cant."
+                                            />
+                                            <Input
+                                                type="number"
+                                                min="0"
+                                                step="0.01"
+                                                value={detalle.precioUnitario}
+                                                onChange={(e) =>
+                                                    handlePrecioChange(detalle.productoId, e.target.value)
+                                                }
+                                                style={{ width: 120 }}
+                                                placeholder="Precio"
+                                                addonBefore="$"
+                                            />
+                                            <span className="text-gray-700 font-semibold">
+                                                Subtotal: ${(detalle.cantidad * detalle.precioUnitario).toFixed(2)}
+                                            </span>
+                                            <Button
+                                                type="link"
+                                                danger
+                                                onClick={() => handleRemoveProducto(detalle.productoId)}
+                                            >
+                                                Eliminar
+                                            </Button>
+                                        </Space>
                                     </Space>
                                 </div>
                             );
                         })
+                    )}
+                    {nota.detalles.length > 0 && (
+                        <div className="mt-3 p-3 bg-gray-100 rounded">
+                            <strong>Total: $
+                                {nota.detalles.reduce((sum, d) => sum + (d.cantidad * d.precioUnitario), 0).toFixed(2)}
+                            </strong>
+                        </div>
                     )}
                 </div>
             </div>

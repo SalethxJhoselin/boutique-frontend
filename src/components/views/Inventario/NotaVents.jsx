@@ -1,136 +1,182 @@
-import { Table } from 'antd';
-import { useEffect, useState } from 'react';
-
-// Datos de prueba para simular notas de venta
-const mockNotasVenta = [
-    {
-        id: 1,
-        fecha: "2024-01-15T10:30:00Z",
-        observacion: "Compra online - Cliente frecuente",
-        usuario: 1,
-        total: 189.97
-    },
-    {
-        id: 2,
-        fecha: "2024-01-14T14:20:00Z",
-        observacion: "Venta en tienda física",
-        usuario: 2,
-        total: 75.50
-    },
-    {
-        id: 3,
-        fecha: "2024-01-13T16:45:00Z",
-        observacion: "Compra con descuento promocional",
-        usuario: 3,
-        total: 120.25
-    },
-    {
-        id: 4,
-        fecha: "2024-01-12T09:15:00Z",
-        observacion: "Pedido corporativo",
-        usuario: 4,
-        total: 350.80
-    },
-    {
-        id: 5,
-        fecha: "2024-01-11T11:30:00Z",
-        observacion: "Compra mayorista",
-        usuario: 5,
-        total: 520.45
-    }
-];
-
-// Datos de prueba para simular detalles de venta
-const mockDetallesVenta = [
-    // Detalles para nota de venta 1
-    { id: 1, nota_venta: 1, producto: 1, cantidad: 2, precio_unitario: 89.99 },
-    { id: 2, nota_venta: 1, producto: 4, cantidad: 1, precio_unitario: 9.99 },
-
-    // Detalles para nota de venta 2
-    { id: 3, nota_venta: 2, producto: 2, cantidad: 1, precio_unitario: 29.99 },
-    { id: 4, nota_venta: 2, producto: 3, cantidad: 1, precio_unitario: 24.99 },
-    { id: 5, nota_venta: 2, producto: 4, cantidad: 2, precio_unitario: 12.99 },
-
-    // Detalles para nota de venta 3
-    { id: 6, nota_venta: 3, producto: 1, cantidad: 1, precio_unitario: 89.99 },
-    { id: 7, nota_venta: 3, producto: 5, cantidad: 1, precio_unitario: 45.99 },
-
-    // Detalles para nota de venta 4
-    { id: 8, nota_venta: 4, producto: 2, cantidad: 5, precio_unitario: 29.99 },
-    { id: 9, nota_venta: 4, producto: 3, cantidad: 3, precio_unitario: 24.99 },
-    { id: 10, nota_venta: 4, producto: 4, cantidad: 10, precio_unitario: 12.99 },
-
-    // Detalles para nota de venta 5
-    { id: 11, nota_venta: 5, producto: 1, cantidad: 4, precio_unitario: 89.99 },
-    { id: 12, nota_venta: 5, producto: 2, cantidad: 3, precio_unitario: 29.99 },
-    { id: 13, nota_venta: 5, producto: 5, cantidad: 2, precio_unitario: 45.99 }
-];
+import { Table, Button, Tag, Space, Modal, notification, Statistic, Row, Col, Card } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNotasVenta, useEstadisticasVentas } from '../../../hooks/useNotasVenta';
 
 const NotaVentas = () => {
-    const [notas, setNotas] = useState([]); // Para almacenar las notas de venta
-    const [detalles, setDetalles] = useState([]); // Para almacenar los detalles de las ventas
-    const [data, setData] = useState([]); // Datos combinados para la tabla
+    const { notasVenta, loading, procesarNotaVenta, cancelarNotaVenta, refetch } = useNotasVenta();
+    const { estadisticas, loading: loadingStats } = useEstadisticasVentas();
 
-    // Obtener notas de venta y detalles de venta desde la API
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                // SIMULACIÓN: Reemplazar estas líneas con las peticiones reales cuando estén disponibles
-                // const notasResponse = await api.get('/notas-venta/');
-                // const detallesResponse = await api.get('/detalles-venta/');
-
-                // Simulación temporal
-                const notasResponse = { data: mockNotasVenta };
-                const detallesResponse = { data: mockDetallesVenta };
-
-                setNotas(notasResponse.data);
-                setDetalles(detallesResponse.data);
-
-                // Combinar notas y detalles
-                const combinedData = notasResponse.data.map(nota => ({
-                    ...nota,
-                    detalles: detallesResponse.data.filter(detalle => detalle.nota_venta === nota.id),
-                }));
-                setData(combinedData);
-            } catch (error) {
-                console.error('Error fetching notas y detalles de venta:', error);
+    const handleProcesar = (notaId) => {
+        Modal.confirm({
+            title: '¿Procesar esta nota de venta?',
+            content: 'Esta acción actualizará el inventario según los productos vendidos.',
+            okText: 'Procesar',
+            cancelText: 'Cancelar',
+            onOk: async () => {
+                try {
+                    await procesarNotaVenta(notaId);
+                    notification.success({ message: 'Nota de venta procesada correctamente' });
+                    refetch();
+                } catch (error) {
+                    notification.error({ 
+                        message: 'Error al procesar nota de venta',
+                        description: error.message 
+                    });
+                }
             }
-        };
+        });
+    };
 
-        fetchData();
-    }, []);
+    const handleCancelar = (notaId) => {
+        Modal.confirm({
+            title: '¿Cancelar esta nota de venta?',
+            content: 'Esta acción marcará la nota como cancelada.',
+            okText: 'Cancelar Nota',
+            cancelText: 'Volver',
+            okButtonProps: { danger: true },
+            onOk: async () => {
+                try {
+                    await cancelarNotaVenta(notaId);
+                    notification.success({ message: 'Nota de venta cancelada' });
+                    refetch();
+                } catch (error) {
+                    notification.error({ 
+                        message: 'Error al cancelar nota de venta',
+                        description: error.message 
+                    });
+                }
+            }
+        });
+    };
 
-    // Definir las columnas de la tabla
+    const handleVerDetalles = (nota) => {
+        Modal.info({
+            title: `Detalles de ${nota.numero}`,
+            width: 700,
+            content: (
+                <div>
+                    <p><strong>Cliente:</strong> {nota.usuario?.nombre || nota.usuario?.email}</p>
+                    <p><strong>Fecha:</strong> {new Date(nota.fechaCreacion).toLocaleString()}</p>
+                    <p><strong>Estado:</strong> <Tag color={
+                        nota.estado === 'procesada' ? 'green' : 
+                        nota.estado === 'cancelada' ? 'red' : 'blue'
+                    }>{nota.estado}</Tag></p>
+                    {nota.observaciones && <p><strong>Observaciones:</strong> {nota.observaciones}</p>}
+                    
+                    <h4 style={{ marginTop: 16 }}>Productos:</h4>
+                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '2px solid #ddd' }}>
+                                <th style={{ padding: 8, textAlign: 'left' }}>Producto</th>
+                                <th style={{ padding: 8, textAlign: 'center' }}>Cantidad</th>
+                                <th style={{ padding: 8, textAlign: 'right' }}>Precio Unit.</th>
+                                <th style={{ padding: 8, textAlign: 'right' }}>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {nota.detalles?.map((detalle, index) => (
+                                <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
+                                    <td style={{ padding: 8 }}>{detalle.producto?.nombre || `Producto ${detalle.productoId}`}</td>
+                                    <td style={{ padding: 8, textAlign: 'center' }}>{detalle.cantidad}</td>
+                                    <td style={{ padding: 8, textAlign: 'right' }}>${detalle.precioUnitario.toFixed(2)}</td>
+                                    <td style={{ padding: 8, textAlign: 'right' }}>${detalle.subtotal.toFixed(2)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                    <p style={{ marginTop: 16, textAlign: 'right', fontSize: '1.1em' }}>
+                        <strong>Total: ${nota.total.toFixed(2)}</strong>
+                    </p>
+                </div>
+            )
+        });
+    };
+        });
+    };
+
     const columns = [
         {
-            title: 'ID Nota de Venta',
-            dataIndex: 'id',
-            key: 'id',
+            title: 'Número',
+            dataIndex: 'numero',
+            key: 'numero',
+            width: 150,
         },
         {
             title: 'Fecha',
-            dataIndex: 'fecha',
-            key: 'fecha',
-            render: (fecha) => new Date(fecha).toLocaleString(), // Formatear la fecha
+            dataIndex: 'fechaCreacion',
+            key: 'fechaCreacion',
+            render: (fecha) => new Date(fecha).toLocaleString(),
+            width: 180,
         },
         {
-            title: 'Observación',
-            dataIndex: 'observacion',
-            key: 'observacion',
+            title: 'Cliente',
+            dataIndex: 'usuario',
+            key: 'usuario',
+            render: (usuario) => usuario?.nombre || usuario?.email || 'N/A',
+            width: 180,
         },
         {
-            title: 'Detalles de Productos',
+            title: 'Items',
             dataIndex: 'detalles',
-            key: 'detalles',
-            render: (detalles) => (
-                <ul>
-                    {detalles.map((detalle, index) => (
-                        <li key={index}>
-                            Producto ID: {detalle.producto}, Cantidad: {detalle.cantidad}
-                        </li>
-                    ))}
-                </ul>
+            key: 'items',
+            render: (detalles) => detalles?.length || 0,
+            align: 'center',
+            width: 80,
+        },
+        {
+            title: 'Total',
+            dataIndex: 'total',
+            key: 'total',
+            render: (total) => `$${total.toFixed(2)}`,
+            align: 'right',
+            width: 120,
+        },
+        {
+            title: 'Estado',
+            dataIndex: 'estado',
+            key: 'estado',
+            render: (estado) => {
+                const color = estado === 'procesada' ? 'green' : 
+                             estado === 'cancelada' ? 'red' : 'blue';
+                return <Tag color={color}>{estado?.toUpperCase()}</Tag>;
+            },
+            width: 120,
+        },
+        {
+            title: 'Acciones',
+            key: 'acciones',
+            render: (_, record) => (
+                <Space>
+                    <Button 
+                        type="link" 
+                        icon={<EyeOutlined />}
+                        onClick={() => handleVerDetalles(record)}
+                    >
+                        Ver
+                    </Button>
+                    {record.estado === 'pendiente' && (
+                        <>
+                            <Button 
+                                type="primary" 
+                                size="small"
+                                icon={<CheckCircleOutlined />}
+                                onClick={() => handleProcesar(record.id)}
+                            >
+                                Procesar
+                            </Button>
+                            <Button 
+                                danger 
+                                size="small"
+                                icon={<CloseCircleOutlined />}
+                                onClick={() => handleCancelar(record.id)}
+                            >
+                                Cancelar
+                            </Button>
+                        </>
+                    )}
+                </Space>
             ),
+            width: 280,
         },
     ];
 
@@ -138,14 +184,57 @@ const NotaVentas = () => {
         <div>
             <h2 className="text-2xl font-bold mb-6">Gestión de Notas de Venta</h2>
 
-            {/* Tabla de notas de venta */}
+            {estadisticas && (
+                <Row gutter={16} style={{ marginBottom: 24 }}>
+                    <Col span={6}>
+                        <Card>
+                            <Statistic 
+                                title="Total Ventas" 
+                                value={estadisticas.totalVentas || 0}
+                                prefix="$"
+                                precision={2}
+                                loading={loadingStats}
+                            />
+                        </Card>
+                    </Col>
+                    <Col span={6}>
+                        <Card>
+                            <Statistic 
+                                title="Ventas Procesadas" 
+                                value={estadisticas.ventasProcesadas || 0}
+                                loading={loadingStats}
+                            />
+                        </Card>
+                    </Col>
+                    <Col span={6}>
+                        <Card>
+                            <Statistic 
+                                title="Ventas Pendientes" 
+                                value={estadisticas.ventasPendientes || 0}
+                                loading={loadingStats}
+                            />
+                        </Card>
+                    </Col>
+                    <Col span={6}>
+                        <Card>
+                            <Statistic 
+                                title="Ventas Canceladas" 
+                                value={estadisticas.ventasCanceladas || 0}
+                                loading={loadingStats}
+                            />
+                        </Card>
+                    </Col>
+                </Row>
+            )}
+
             <Table
                 columns={columns}
-                dataSource={data}
-                rowKey="id" // Asegúrate de que cada nota tenga un campo `id`
-                pagination={{ pageSize: 10 }} // Paginación con 10 elementos por página
+                dataSource={notasVenta}
+                rowKey="id"
+                loading={loading}
+                pagination={{ pageSize: 10 }}
                 className="mt-6"
-                scroll={{ y: 400 }} // Establece el scroll vertical con un tamaño máximo de 400px
+                scroll={{ x: 1200, y: 400 }}
             />
         </div>
     );

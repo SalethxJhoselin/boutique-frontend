@@ -1,105 +1,23 @@
-import { Button, Checkbox, Select, Typography, notification } from 'antd';
-import { useEffect, useState } from 'react';
+import { Button, Checkbox, Select, Typography, notification, Tag, Space, Divider } from 'antd';
+import { useState } from 'react';
+import { useRoles, usePermisos } from '../../../hooks/useRoles';
 
 const { Title } = Typography;
-
-// Datos de prueba para simular roles
-const mockRoles = [
-    {
-        id: 1,
-        nombre: "Administrador",
-        descripcion: "Acceso completo al sistema",
-        permisos: [1, 2, 3, 4, 5, 6]
-    },
-    {
-        id: 2,
-        nombre: "Usuario",
-        descripcion: "Usuario estándar",
-        permisos: [1, 3, 5]
-    },
-    {
-        id: 3,
-        nombre: "Moderador",
-        descripcion: "Moderador de contenido",
-        permisos: [1, 2, 3, 4]
-    }
-];
-
-// Datos de prueba para simular permisos
-const mockPermissions = [
-    {
-        id: 1,
-        nombre: "Ver productos",
-        descripcion: "Permiso para ver productos del catálogo"
-    },
-    {
-        id: 2,
-        nombre: "Editar productos",
-        descripcion: "Permiso para editar productos existentes"
-    },
-    {
-        id: 3,
-        nombre: "Crear productos",
-        descripcion: "Permiso para crear nuevos productos"
-    },
-    {
-        id: 4,
-        nombre: "Eliminar productos",
-        descripcion: "Permiso para eliminar productos"
-    },
-    {
-        id: 5,
-        nombre: "Gestionar usuarios",
-        descripcion: "Permiso para gestionar usuarios del sistema"
-    },
-    {
-        id: 6,
-        nombre: "Configurar sistema",
-        descripcion: "Permiso para configurar parámetros del sistema"
-    }
-];
 
 const ManagePermissions = () => {
     const [selectedRoleId, setSelectedRoleId] = useState(null);
     const [rolePermissions, setRolePermissions] = useState([]);
-    const [roles, setRoles] = useState([]);
-    const [permissions, setPermissions] = useState([]);
 
-    // Cargar roles y permisos al montar el componente
-    useEffect(() => {
-        const loadRolesAndPermissions = async () => {
-            try {
-                // SIMULACIÓN: Reemplazar estas líneas con las peticiones reales cuando estén disponibles
-                // const [rolesData, permissionsData] = await Promise.all([
-                //     api.get("/roles/"),
-                //     api.get("/permisos/")
-                // ]);
+    const { roles, loading: loadingRoles, actualizarRol } = useRoles();
+    const { permisos, loading: loadingPermisos, inicializarPermisos } = usePermisos();
 
-                // Simulación temporal
-                const rolesData = { data: mockRoles };
-                const permissionsData = { data: mockPermissions };
-
-                setRoles(rolesData.data);
-                setPermissions(permissionsData.data);
-            } catch (error) {
-                notification.error({
-                    message: 'Error al obtener roles o permisos',
-                    description: error.response?.data?.detail || error.message
-                });
-            }
-        };
-
-        loadRolesAndPermissions();
-    }, []);
-
-    // Manejar cambio de rol
     const handleRoleChange = (value) => {
         setSelectedRoleId(value);
         const selectedRole = roles.find(role => role.id === value);
-        setRolePermissions(selectedRole?.permisos || []);
+        const permisoIds = selectedRole?.permisos?.map(p => p.id) || [];
+        setRolePermissions(permisoIds);
     };
 
-    // Manejar cambio de permisos
     const handlePermissionChange = (permissionId) => {
         setRolePermissions(prevPermissions =>
             prevPermissions.includes(permissionId)
@@ -108,7 +26,6 @@ const ManagePermissions = () => {
         );
     };
 
-    // Guardar permisos y recargar datos
     const handleSavePermissions = async () => {
         const selectedRole = roles.find(role => role.id === selectedRoleId);
         if (!selectedRole) {
@@ -116,41 +33,63 @@ const ManagePermissions = () => {
             return;
         }
 
-        const updatedRolePermissions = {
-            permisos: rolePermissions,
-            nombre: selectedRole.nombre,
-            descripcion: selectedRole.descripcion
-        };
-
         try {
-            // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-            // await api.post(`/roles/${selectedRoleId}/asignar_permisos/`, updatedRolePermissions);
-
-            // Simulación temporal - actualizar datos localmente
-            const updatedRoles = roles.map(role =>
-                role.id === selectedRoleId
-                    ? { ...role, permisos: rolePermissions }
-                    : role
+            await actualizarRol(
+                selectedRoleId,
+                selectedRole.nombre,
+                selectedRole.descripcion,
+                rolePermissions
             );
-
-            setRoles(updatedRoles);
 
             notification.success({ message: 'Permisos actualizados correctamente' });
 
-            // Recargar datos actualizados (simulación)
-            const updatedRole = updatedRoles.find(role => role.id === selectedRoleId);
-            setRolePermissions(updatedRole?.permisos || []);
+            // Actualizar la vista local
+            const updatedRole = roles.find(role => role.id === selectedRoleId);
+            const updatedPermisoIds = updatedRole?.permisos?.map(p => p.id) || [];
+            setRolePermissions(updatedPermisoIds);
         } catch (error) {
+            console.error('❌ Error al actualizar permisos:', error);
             notification.error({
                 message: 'Error al actualizar permisos',
-                description: error.response?.data?.detail || error.message
+                description: error.message
             });
         }
     };
 
+    const handleInicializarPermisos = async () => {
+        try {
+            const permisosCreados = await inicializarPermisos();
+            notification.success({ 
+                message: 'Permisos inicializados correctamente', 
+                description: `${permisosCreados.length} permisos básicos creados` 
+            });
+        } catch (error) {
+            notification.error({ message: 'Error al inicializar permisos' });
+        }
+    };
+
+    // Agrupar permisos por módulo
+    const permisosPorModulo = permisos.reduce((acc, permiso) => {
+        const modulo = permiso.modulo || 'General';
+        if (!acc[modulo]) acc[modulo] = [];
+        acc[modulo].push(permiso);
+        return acc;
+    }, {});
+
     return (
         <div className="p-5 bg-white rounded-2xl shadow-lg mt-2 ml-2 mr-2">
             <Title level={3} className="text-center">Gestionar Permisos</Title>
+            
+            <Space style={{ marginBottom: 16 }}>
+                <Button 
+                    onClick={handleInicializarPermisos}
+                    loading={loadingPermisos}
+                >
+                    Inicializar Permisos Básicos
+                </Button>
+                <Tag color="blue">{permisos.length} permisos disponibles</Tag>
+            </Space>
+
             <div className="mb-6">
                 <h3 className="text-lg">Rol:</h3>
                 <Select
@@ -158,47 +97,65 @@ const ManagePermissions = () => {
                     onChange={handleRoleChange}
                     value={selectedRoleId}
                     placeholder="Seleccionar Rol"
+                    loading={loadingRoles}
                 >
                     {roles.length > 0 ? (
                         roles.map(role => (
                             <Select.Option key={role.id} value={role.id}>
-                                {role.nombre}
+                                {role.nombre} {role.descripcion && `- ${role.descripcion}`}
                             </Select.Option>
                         ))
                     ) : (
-                        <Select.Option>No data found</Select.Option>
+                        <Select.Option disabled>No hay roles disponibles</Select.Option>
                     )}
                 </Select>
             </div>
-            <div className="mb-6">
-                <h3 className="text-lg">Permisos:</h3>
-                <div className="flex flex-col items-start">
-                    {permissions.length > 0 ? (
-                        permissions.map(permission => (
-                            <div key={permission.id} className="mb-2">
-                                <Checkbox
-                                    disabled={!selectedRoleId}
-                                    checked={rolePermissions.includes(permission.id)}
-                                    onChange={() => handlePermissionChange(permission.id)}
-                                >
-                                    {permission.nombre}
-                                </Checkbox>
+
+            {selectedRoleId && (
+                <>
+                    <div className="mb-6">
+                        <h3 className="text-lg">Permisos:</h3>
+                        
+                        {loadingPermisos ? (
+                            <p>Cargando permisos...</p>
+                        ) : (
+                            <div className="flex flex-col items-start">
+                                {Object.entries(permisosPorModulo).map(([modulo, permisosDelModulo]) => (
+                                    <div key={modulo} style={{ width: '100%', marginBottom: 16 }}>
+                                        <Divider orientation="left">
+                                            <Tag color="geekblue">{modulo}</Tag>
+                                        </Divider>
+                                        {permisosDelModulo.map(permission => (
+                                            <div key={permission.id} className="mb-2">
+                                                <Checkbox
+                                                    checked={rolePermissions.includes(permission.id)}
+                                                    onChange={() => handlePermissionChange(permission.id)}
+                                                >
+                                                    <strong>{permission.nombre}</strong>
+                                                    {permission.descripcion && (
+                                                        <span style={{ marginLeft: 8, color: '#666', fontSize: '0.9em' }}>
+                                                            - {permission.descripcion}
+                                                        </span>
+                                                    )}
+                                                </Checkbox>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
                             </div>
-                        ))
-                    ) : (
-                        <span>No data found</span>
-                    )}
-                </div>
-            </div>
-            <div>
-                <Button
-                    className="w-full"
-                    disabled={!selectedRoleId}
-                    onClick={handleSavePermissions}
-                >
-                    Guardar
-                </Button>
-            </div>
+                        )}
+                    </div>
+                    <div>
+                        <Button
+                            type="primary"
+                            className="w-full"
+                            onClick={handleSavePermissions}
+                        >
+                            Guardar Permisos
+                        </Button>
+                    </div>
+                </>
+            )}
         </div>
     );
 };
