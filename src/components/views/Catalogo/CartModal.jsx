@@ -1,36 +1,14 @@
 import jsPDF from 'jspdf'; // Importa la librería para generar PDFs
 import 'jspdf-autotable'; // Plugin para tablas en jsPDF
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../context/AuthContext'; // Para obtener el userId
+import { useAuth } from '../../../hooks/useAuth'; // Para obtener el userId
 import { useCart } from '../../../context/CartContext';
-
-// Datos de prueba para simular respuesta de nota de venta
-const mockNotaVentaResponse = {
-    id: 12345,
-    numero_venta: "NV-2024-001",
-    fecha: "2024-01-15T10:30:00Z",
-    usuario: 1,
-    observacion: "Compra a través de Stripe",
-    total: 189.97,
-    detalles: [
-        {
-            producto: 1,
-            cantidad: 2,
-            precio_unitario: 89.99,
-            subtotal: 179.98
-        },
-        {
-            producto: 4,
-            cantidad: 1,
-            precio_unitario: 9.99,
-            subtotal: 9.99
-        }
-    ]
-};
+import { useMisOrdenes } from '../../../hooks/useOrders';
 
 const CartModal = ({ onClose }) => {
-    const { cart, clearCart } = useCart(); // Accede a los productos en el carrito
-    const { userId } = useAuth(); // Obtener el userId del contexto de autenticación
+    const { cart, clearCart } = useCart(); 
+    const { userId } = useAuth(); 
+    const { crearOrden } = useMisOrdenes(); 
     const navigate = useNavigate();
 
     const handlePurchase = async () => {
@@ -39,28 +17,23 @@ const CartModal = ({ onClose }) => {
             return;
         }
 
-        const subtotal = cart.reduce((total, product) => total + product.price * product.quantity, 0);
-
-        // Prepara los datos para enviar al backend
-        const purchaseData = {
-            observacion: "Compra a través de Stripe",
-            detalles: cart.map(product => ({
-                producto: product.id,
-                cantidad: product.quantity,
-            })),
-        };
+        
+        const items = cart.map(product => ({
+            productId: product.id,
+            cantidad: product.quantity,
+            precioUnitario: product.price,
+        }));
 
         try {
-            // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-            // const response = await api.post('/notas-venta/', purchaseData);
-            const response = { data: mockNotaVentaResponse }; // Simulación temporal
+            
+            const orden = await crearOrden(items);
+            
+            console.log("✅ Orden creada exitosamente:", orden);
 
-            console.log("Nota de venta registrada exitosamente:", response.data);
+            // Generar el PDF con los detalles de la orden
+            generatePDF(orden);
 
-            // Generar el PDF con los detalles de la nota de venta
-            generatePDF(purchaseData);
-
-            // Redirigir al usuario a Stripe para completar el pago
+            
             const stripeURL = "https://buy.stripe.com/test_9AQbKF5h9gaO1Qk5ko";
             window.open(stripeURL, '_blank');
 
@@ -70,44 +43,49 @@ const CartModal = ({ onClose }) => {
             // Limpia el carrito después de la compra
             clearCart();
         } catch (error) {
-            console.error("Error al registrar la nota de venta:", error);
+            console.error("❌ Error al crear la orden:", error);
+            alert("Error al procesar la compra. Por favor intenta de nuevo.");
         }
     };
 
-    const generatePDF = (data) => {
+    const generatePDF = (orden) => {
         const doc = new jsPDF();
 
         // Título del documento
         doc.setFontSize(18);
-        doc.text('Nota de Venta', 105, 15, { align: 'center' });
+        doc.text('Recibo de Compra', 105, 15, { align: 'center' });
 
-        // Información del usuario
+        // Información de la orden
         doc.setFontSize(12);
-        doc.text(`Usuario ID: ${userId}`, 10, 30);
-        doc.text(`Observación: ${data.observacion}`, 10, 40);
+        doc.text(`Orden ID: ${orden.id}`, 10, 30);
+        doc.text(`Fecha: ${new Date(orden.createdAt).toLocaleDateString()}`, 10, 40);
+        doc.text(`Estado: ${orden.estado}`, 10, 50);
 
         // Tabla con detalles de los productos
-        const tableColumn = ['Producto ID', 'Nombre', 'Cantidad', 'Precio Unitario ($)', 'Subtotal ($)'];
-        const tableRows = cart.map(product => [
-            product.id,
-            product.name,
-            product.quantity,
-            product.price.toFixed(2),
-            (product.price * product.quantity).toFixed(2),
+        const tableColumn = ['Producto', 'Cantidad', 'Precio Unitario ($)', 'Subtotal ($)'];
+        const tableRows = orden.items.map(item => [
+            item.product.nombre,
+            item.cantidad,
+            item.precioUnitario.toFixed(2),
+            item.subtotal.toFixed(2),
         ]);
 
         doc.autoTable({
             head: [tableColumn],
             body: tableRows,
-            startY: 50,
+            startY: 60,
         });
 
-        // Total general
-        const total = cart.reduce((sum, product) => sum + product.price * product.quantity, 0);
-        doc.text(`Total: $${total.toFixed(2)}`, 10, doc.previousAutoTable.finalY + 10);
+        // Totales
+        const finalY = doc.previousAutoTable.finalY + 10;
+        doc.text(`Subtotal: $${orden.subtotal.toFixed(2)}`, 10, finalY);
+        doc.text(`Impuestos: $${orden.impuestos.toFixed(2)}`, 10, finalY + 10);
+        doc.text(`Envío: $${orden.envio.toFixed(2)}`, 10, finalY + 20);
+        doc.setFontSize(14);
+        doc.text(`TOTAL: $${orden.total.toFixed(2)}`, 10, finalY + 35);
 
         // Guardar el archivo
-        doc.save('nota_de_venta.pdf');
+        doc.save(`orden_${orden.id}.pdf`);
     };
 
     return (

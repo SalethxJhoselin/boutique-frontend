@@ -2,15 +2,6 @@ import { useState } from 'react';
 import { useAuth } from '../../../hooks/useAuth'; 
 import { useCart } from '../../../context/CartContext';
 
-// Datos de prueba para simular respuesta de búsqueda registrada
-const mockSearchResponse = {
-  id: 123,
-  usuario: 1,
-  producto: 1,
-  fecha_busqueda: "2024-01-15T10:30:00Z",
-  resultado: "éxito"
-};
-
 const ProductCard = ({ product, onSelect }) => {
   const [quantity, setQuantity] = useState(1); // Estado para manejar la cantidad
   const { addToCart } = useCart();
@@ -24,20 +15,18 @@ const ProductCard = ({ product, onSelect }) => {
     }
   };
 
-  // Función para registrar la búsqueda
+  // Función para registrar la búsqueda (cuando el backend esté listo)
   const registerSearch = async (productId) => {
     if (!userId) {
-      console.warn("El usuario no está autenticado, no se registrará la búsqueda.");
+      console.warn("⚠️ El usuario no está autenticado, no se registrará la búsqueda.");
       return;
     }
     try {
-      // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-      // await api.post('/busquedas/', { usuario: userId, producto: productId });
-
-      // Simulación temporal
-      console.log("Búsqueda registrada exitosamente para el producto:", productId);
+      // TODO: Implementar cuando el backend tenga la mutation de búsqueda
+      // await crearBusqueda({ productId });
+      console.log("🔍 Búsqueda registrada para el producto:", productId);
     } catch (error) {
-      console.error("Error al registrar la búsqueda:", error);
+      console.error("❌ Error al registrar la búsqueda:", error);
     }
   };
 
