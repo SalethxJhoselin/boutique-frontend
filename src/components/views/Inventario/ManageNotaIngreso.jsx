@@ -128,8 +128,6 @@ const ManageNotaIngreso = () => {
             )
         });
     };
-        });
-    };
 
     const columns = [
         {
