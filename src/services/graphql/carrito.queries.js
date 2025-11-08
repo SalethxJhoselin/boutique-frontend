@@ -23,7 +23,7 @@ export const MI_CARRITO = gql`
           id
           nombre
           precio
-          imagenes
+          imagen_url
           stock
         }
       }
@@ -48,7 +48,7 @@ export const CARRITO = gql`
           id
           nombre
           precio
-          imagenes
+          imagen_url
         }
       }
     }
@@ -90,8 +90,14 @@ export const ACTUALIZAR_CANTIDAD_CARRITO = gql`
   mutation ActualizarCantidadCarrito($input: UpdateCartItemInput!) {
     actualizarCantidadCarrito(input: $input) {
       id
-      cantidad
       subtotal
+      descuento
+      total
+      items {
+        id
+        cantidad
+        subtotal
+      }
     }
   }
 `;
@@ -101,7 +107,11 @@ export const ELIMINAR_DEL_CARRITO = gql`
     eliminarDelCarrito(input: $input) {
       id
       subtotal
+      descuento
       total
+      items {
+        id
+      }
     }
   }
 `;

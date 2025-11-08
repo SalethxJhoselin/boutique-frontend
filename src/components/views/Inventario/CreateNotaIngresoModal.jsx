@@ -146,10 +146,13 @@ function CreateNotaIngresoModal({ visible, closeModal, refreshNotas }) {
                         nota.detalles.map((detalle) => {
                             const producto = productos.find((p) => p.id === detalle.productoId);
                             return (
-                                <div key={detalle.productoId} className="mb-4 p-3 border rounded">
-                                    <Space direction="vertical" style={{ width: '100%' }}>
-                                        <span className="font-medium">{producto?.nombre || 'Producto no encontrado'}</span>
-                                        <Space>
+                                <div key={detalle.productoId} className="mb-3 p-4 border rounded bg-gray-50">
+                                    <div className="mb-2">
+                                        <span className="font-medium text-base">{producto?.nombre || 'Producto no encontrado'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <div style={{ minWidth: 120 }}>
+                                            <label className="block text-sm text-gray-600 mb-1">Cantidad:</label>
                                             <Input
                                                 type="number"
                                                 min="1"
@@ -157,10 +160,12 @@ function CreateNotaIngresoModal({ visible, closeModal, refreshNotas }) {
                                                 onChange={(e) =>
                                                     handleCantidadChange(detalle.productoId, e.target.value)
                                                 }
-                                                style={{ width: 80 }}
-                                                placeholder="Cant."
-                                                addonBefore="Cant."
+                                                style={{ width: 100 }}
+                                                size="large"
                                             />
+                                        </div>
+                                        <div style={{ minWidth: 140 }}>
+                                            <label className="block text-sm text-gray-600 mb-1">Precio Unit.:</label>
                                             <Input
                                                 type="number"
                                                 min="0"
@@ -169,13 +174,18 @@ function CreateNotaIngresoModal({ visible, closeModal, refreshNotas }) {
                                                 onChange={(e) =>
                                                     handlePrecioChange(detalle.productoId, e.target.value)
                                                 }
-                                                style={{ width: 120 }}
-                                                placeholder="Precio"
                                                 addonBefore="$"
+                                                style={{ width: 140 }}
+                                                size="large"
                                             />
-                                            <span className="text-gray-700 font-semibold">
-                                                Subtotal: ${(detalle.cantidad * detalle.precioUnitario).toFixed(2)}
-                                            </span>
+                                        </div>
+                                        <div style={{ minWidth: 120 }}>
+                                            <label className="block text-sm text-gray-600 mb-1">Subtotal:</label>
+                                            <div className="text-lg font-bold text-green-600">
+                                                ${(detalle.cantidad * detalle.precioUnitario).toFixed(2)}
+                                            </div>
+                                        </div>
+                                        <div className="flex items-end">
                                             <Button
                                                 type="link"
                                                 danger
@@ -183,17 +193,17 @@ function CreateNotaIngresoModal({ visible, closeModal, refreshNotas }) {
                                             >
                                                 Eliminar
                                             </Button>
-                                        </Space>
-                                    </Space>
+                                        </div>
+                                    </div>
                                 </div>
                             );
                         })
                     )}
                     {nota.detalles.length > 0 && (
-                        <div className="mt-3 p-3 bg-gray-100 rounded">
-                            <strong>Total: $
-                                {nota.detalles.reduce((sum, d) => sum + (d.cantidad * d.precioUnitario), 0).toFixed(2)}
-                            </strong>
+                        <div className="mt-4 p-4 bg-blue-50 rounded border-2 border-blue-200">
+                            <div className="text-xl font-bold text-blue-800">
+                                Total: ${nota.detalles.reduce((sum, d) => sum + (d.cantidad * d.precioUnitario), 0).toFixed(2)}
+                            </div>
                         </div>
                     )}
                 </div>

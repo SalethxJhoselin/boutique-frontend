@@ -1,14 +1,38 @@
 import React, { useState } from 'react';
-import { Card, Button, Space, Spin, Empty, Pagination, Tag, Row, Col } from 'antd';
+import { Card, Button, Space, Spin, Empty, Pagination, Tag, Row, Col, message } from 'antd';
 import { ShoppingCartOutlined, EyeOutlined } from '@ant-design/icons';
 import { useProducts } from '../../../hooks/useProducts';
+import { useCarrito } from '../../../hooks/useCarrito';
+import { useAuth } from '../../../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 
 const ProductList = () => {
   const { products, loading } = useProducts();
+  const { user } = useAuth();
+  const { agregarAlCarrito } = useCarrito(user?.id);
   const [page, setPage] = useState(1);
+  const [loadingCart, setLoadingCart] = useState({});
   const itemsPerPage = 12;
   const navigate = useNavigate();
+
+  const handleAddToCart = async (product) => {
+    if (!user) {
+      message.warning('Debes iniciar sesión para agregar productos al carrito');
+      navigate('/login');
+      return;
+    }
+
+    setLoadingCart({ ...loadingCart, [product.id]: true });
+    try {
+      await agregarAlCarrito(product.id, 1);
+      message.success(`${product.nombre} agregado al carrito`);
+    } catch (error) {
+      message.error('Error al agregar al carrito');
+      console.error('Error:', error);
+    } finally {
+      setLoadingCart({ ...loadingCart, [product.id]: false });
+    }
+  };
 
   if (loading) return <Spin size="large" />;
   if (!products.length) return <Empty description="No hay productos disponibles" />;
@@ -81,6 +105,8 @@ const ProductList = () => {
                 className="mt-2"
                 icon={<ShoppingCartOutlined />}
                 disabled={product.stock === 0}
+                loading={loadingCart[product.id]}
+                onClick={() => handleAddToCart(product)}
               >
                 Agregar al Carrito
               </Button>

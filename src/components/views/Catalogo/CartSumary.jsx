@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
-import { useCart } from '../../../context/CartContext';
+import { useCarrito } from '../../../hooks/useCarrito';
+import { useAuth } from '../../../hooks/useAuth';
 import CartModal from './CartModal';
-import { FaShoppingCart  } from 'react-icons/fa';
+import { FaShoppingCart } from 'react-icons/fa';
+import { Badge } from 'antd';
 
 const CartSummary = () => {
-  const { getTotalItems } = useCart();
+  const { user } = useAuth();
+  const { carrito } = useCarrito(user?.id);
   const [isModalOpen, setModalOpen] = useState(false);
 
-  // Función para abrir y cerrar el modal
   const toggleModal = () => setModalOpen(!isModalOpen);
+
+  const totalItems = carrito?.items?.reduce((sum, item) => sum + item.cantidad, 0) || 0;
 
   return (
     <div>
-      <p onClick={toggleModal} className="cursor-pointer">
-        <FaShoppingCart />{getTotalItems()}
-      </p>
+      <Badge count={totalItems} offset={[0, 0]}>
+        <p onClick={toggleModal} className="cursor-pointer text-2xl">
+          <FaShoppingCart />
+        </p>
+      </Badge>
 
-      {/* Modal para mostrar el carrito */}
       {isModalOpen && <CartModal onClose={toggleModal} />}
     </div>
   );

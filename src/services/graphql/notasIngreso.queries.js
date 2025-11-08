@@ -6,19 +6,19 @@ import { gql } from '@apollo/client';
 
 export const NOTAS_INGRESO = gql`
   query NotasIngreso {
-    notasIngreso {
+    obtenerNotasIngreso {
       id
-      numero
+      numero_nota
       proveedor
       total
       estado
       observaciones
-      createdAt
-      updatedAt
+      fecha_creacion
+      fecha_actualizacion
       detalles {
         id
         cantidad
-        precioUnitario
+        precio_unitario
         subtotal
         producto {
           id
@@ -28,23 +28,21 @@ export const NOTAS_INGRESO = gql`
       }
     }
   }
-`;
-
-export const NOTA_INGRESO = gql`
+`;export const NOTA_INGRESO = gql`
   query NotaIngreso($id: ID!) {
-    notaIngreso(id: $id) {
+    obtenerNotaIngresoPorId(id: $id) {
       id
-      numero
+      numero_nota
       proveedor
       total
       estado
       observaciones
-      createdAt
-      updatedAt
+      fecha_creacion
+      fecha_actualizacion
       detalles {
         id
         cantidad
-        precioUnitario
+        precio_unitario
         subtotal
         producto {
           id
@@ -61,11 +59,11 @@ export const NOTAS_INGRESO_POR_PROVEEDOR = gql`
   query NotasIngresoPorProveedor($proveedor: String!) {
     notasIngresoPorProveedor(proveedor: $proveedor) {
       id
-      numero
+      numero_nota
       proveedor
       total
       estado
-      createdAt
+      fecha_creacion
     }
   }
 `;
@@ -76,9 +74,9 @@ export const NOTAS_INGRESO_POR_PROVEEDOR = gql`
 
 export const CREAR_NOTA_INGRESO = gql`
   mutation CrearNotaIngreso($input: CreateNotaIngresoInput!) {
-    crearNotaIngreso(input: $input) {
+    crearNotaIngreso(createNotaIngresoInput: $input) {
       id
-      numero
+      numero_nota
       proveedor
       total
       estado
@@ -86,7 +84,7 @@ export const CREAR_NOTA_INGRESO = gql`
       detalles {
         id
         cantidad
-        precioUnitario
+        precio_unitario
         subtotal
         producto {
           id
@@ -97,21 +95,11 @@ export const CREAR_NOTA_INGRESO = gql`
   }
 `;
 
-export const PROCESAR_NOTA_INGRESO = gql`
-  mutation ProcesarNotaIngreso($id: ID!) {
-    procesarNotaIngreso(id: $id) {
-      id
-      numero
-      estado
-      updatedAt
-    }
-  }
-`;
-
 export const ACTUALIZAR_ESTADO_NOTA_INGRESO = gql`
-  mutation ActualizarEstadoNotaIngreso($id: ID!, $input: UpdateNotaIngresoInput!) {
-    actualizarEstadoNotaIngreso(id: $id, input: $input) {
+  mutation ActualizarEstadoNotaIngreso($id: ID!, $input: UpdateEstadoNotaIngresoInput!) {
+    actualizarEstadoNotaIngreso(id: $id, updateEstadoInput: $input) {
       id
+      numero_nota
       estado
       observaciones
     }

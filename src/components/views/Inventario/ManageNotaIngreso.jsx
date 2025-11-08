@@ -7,7 +7,7 @@ import { useNotasIngreso } from '../../../hooks/useNotasIngreso';
 
 const ManageNotaIngreso = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const { notasIngreso, loading, procesarNotaIngreso, actualizarEstado, eliminarNotaIngreso, refetch } = useNotasIngreso();
+    const { notasIngreso, loading, actualizarEstado, eliminarNotaIngreso, refetch } = useNotasIngreso();
 
     const showModal = () => {
         setIsModalVisible(true);
@@ -24,12 +24,12 @@ const ManageNotaIngreso = () => {
     const handleProcesar = (notaId) => {
         Modal.confirm({
             title: '¿Procesar esta nota de ingreso?',
-            content: 'Esta acción actualizará el inventario según los productos ingresados.',
+            content: 'Esta acción marcará la nota como procesada y actualizará el inventario.',
             okText: 'Procesar',
             cancelText: 'Cancelar',
             onOk: async () => {
                 try {
-                    await procesarNotaIngreso(notaId);
+                    await actualizarEstado(notaId, 'procesada');
                     notification.success({ message: 'Nota de ingreso procesada correctamente' });
                     refetch();
                 } catch (error) {
@@ -115,7 +115,7 @@ const ManageNotaIngreso = () => {
                                 <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
                                     <td style={{ padding: 8 }}>{detalle.producto?.nombre || `Producto ${detalle.productoId}`}</td>
                                     <td style={{ padding: 8, textAlign: 'center' }}>{detalle.cantidad}</td>
-                                    <td style={{ padding: 8, textAlign: 'right' }}>${detalle.precioUnitario.toFixed(2)}</td>
+                                    <td style={{ padding: 8, textAlign: 'right' }}>${detalle.precio_unitario.toFixed(2)}</td>
                                     <td style={{ padding: 8, textAlign: 'right' }}>${detalle.subtotal.toFixed(2)}</td>
                                 </tr>
                             ))}

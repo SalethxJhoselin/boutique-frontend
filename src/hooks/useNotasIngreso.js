@@ -4,7 +4,6 @@ import {
   NOTA_INGRESO,
   NOTAS_INGRESO_POR_PROVEEDOR,
   CREAR_NOTA_INGRESO,
-  PROCESAR_NOTA_INGRESO,
   ACTUALIZAR_ESTADO_NOTA_INGRESO,
   ELIMINAR_NOTA_INGRESO,
 } from '../services/graphql/notasIngreso.queries';
@@ -13,17 +12,23 @@ export const useNotasIngreso = () => {
   const { data, loading, error, refetch } = useQuery(NOTAS_INGRESO);
 
   const [crearNotaIngresoMutation] = useMutation(CREAR_NOTA_INGRESO);
-  const [procesarNotaIngresoMutation] = useMutation(PROCESAR_NOTA_INGRESO);
   const [actualizarEstadoMutation] = useMutation(ACTUALIZAR_ESTADO_NOTA_INGRESO);
   const [eliminarNotaIngresoMutation] = useMutation(ELIMINAR_NOTA_INGRESO);
 
   const crearNotaIngreso = async (proveedor, observaciones, detalles) => {
+    // Convertir camelCase a snake_case para el backend
+    const detallesBackend = detalles.map(detalle => ({
+      productoId: detalle.productoId,
+      cantidad: detalle.cantidad,
+      precio_unitario: detalle.precioUnitario || detalle.precio_unitario,
+    }));
+
     const result = await crearNotaIngresoMutation({
       variables: {
         input: {
           proveedor,
           observaciones,
-          detalles,
+          detalles: detallesBackend,
         },
       },
     });
@@ -31,19 +36,11 @@ export const useNotasIngreso = () => {
     return result.data.crearNotaIngreso;
   };
 
-  const procesarNotaIngreso = async (id) => {
-    const result = await procesarNotaIngresoMutation({
-      variables: { id },
-    });
-    refetch();
-    return result.data.procesarNotaIngreso;
-  };
-
-  const actualizarEstado = async (id, estado, observaciones) => {
+  const actualizarEstado = async (id, estado) => {
     const result = await actualizarEstadoMutation({
       variables: {
         id,
-        input: { estado, observaciones },
+        input: { estado },
       },
     });
     refetch();
@@ -59,12 +56,11 @@ export const useNotasIngreso = () => {
   };
 
   return {
-    notasIngreso: data?.notasIngreso || [],
+    notasIngreso: data?.obtenerNotasIngreso || [],
     loading,
     error,
     refetch,
     crearNotaIngreso,
-    procesarNotaIngreso,
     actualizarEstado,
     eliminarNotaIngreso,
   };
@@ -77,7 +73,7 @@ export const useNotaIngreso = (id) => {
   });
 
   return {
-    notaIngreso: data?.notaIngreso,
+    notaIngreso: data?.obtenerNotaIngresoPorId,
     loading,
     error,
   };
