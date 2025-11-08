@@ -1,58 +1,47 @@
 import { useState } from 'react';
 import { MdLock, MdLockOpen } from 'react-icons/md';
-import { Link } from 'react-router-dom';
-import api from '../../api/apiServices';
-import { useAuth } from '../../context/AuthContext';
-
-// Datos de prueba para simular respuesta de registro exitoso
-const mockRegisterSuccess = {
-    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_access_token_register",
-    refresh_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_refresh_token_register"
-};
-
-// Datos de prueba para simular respuesta de error (email ya registrado)
-const mockRegisterError = {
-    email: ["El correo electrónico ya está registrado"]
-};
+import { Link, useNavigate } from 'react-router-dom';
+import { useMutation } from '@apollo/client';
+import { REGISTER } from '../../services/graphql/auth.queries';
+import { useAuth } from '../../hooks/useAuth';
+import { message } from 'antd';
 
 const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
-    const [nombre, setNombre] = useState('')
-    const [correo, setCorreo] = useState('')
-    const [contraseña, setContraseña] = useState('')
+    const [nombre, setNombre] = useState('');
+    const [correo, setCorreo] = useState('');
+    const [contraseña, setContraseña] = useState('');
+    
+    const navigate = useNavigate();
     const { login } = useAuth();
+    const [registerMutation, { loading }] = useMutation(REGISTER);
 
     const onSubmit = async (event) => {
         event.preventDefault();
+        setErrorMessage('');
+
         try {
-            // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-            // const response = await api.post("/auth/registro/", {
-            //     nombre: nombre,
-            //     email: correo,
-            //     password: contraseña,
-            //     roles: [2] 
-            // });
+            const result = await registerMutation({
+                variables: {
+                    input: {
+                        nombre,
+                        email: correo,
+                        password: contraseña
+                    }
+                }
+            });
 
-            // Simulación temporal - validar registro de prueba
-            let response;
-            if (correo === "existente@ejemplo.com") {
-                // Simular error de email ya registrado
-                throw { response: { data: mockRegisterError } };
-            } else if (nombre && correo && contraseña) {
-                // Simular registro exitoso
-                response = { data: mockRegisterSuccess };
-            } else {
-                throw new Error("Todos los campos son requeridos");
-            }
-
-            const { access_token, refresh_token } = response.data;
-            //const { token } = response.data;
-            console.log('token', refresh_token);
-            localStorage.setItem('token', refresh_token);
-            login();
+            const { token } = result.data.register;
+            localStorage.setItem('token', token);
+            login(token);
+            message.success('¡Registro exitoso! Bienvenido');
+            navigate('/');
         } catch (error) {
-            setErrorMessage(error.response?.data?.email || 'Error al registrarse. Inténtalo de nuevo.');
+            console.error('Error en registro:', error);
+            const errorMsg = error.message || 'Error al registrarse. Inténtalo de nuevo.';
+            setErrorMessage(errorMsg);
+            message.error(errorMsg);
         }
     };
     return (
@@ -101,9 +90,10 @@ const Register = () => {
                     <div>
                         <button
                             type="submit"
-                            className="w-full bg-blue text-white text-lg py-4 tracking-wider hover:bg-gray-800 transition-all duration-300"
+                            disabled={loading}
+                            className="w-full bg-blue text-white text-lg py-4 tracking-wider hover:bg-gray-800 transition-all duration-300 disabled:opacity-50"
                         >
-                            REGISTRARSE
+                            {loading ? 'REGISTRANDO...' : 'REGISTRARSE'}
                         </button>
                     </div>
                     <div className="text-center text-sm">
