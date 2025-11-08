@@ -1,9 +1,9 @@
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import Navbar from './components/Layout/Navbar';
-import MyRoutes from './routes/Routes'; //modifique esto a Routes de routes
-import Sidebar from './components/Layout/Sidebar';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import Navbar from './components/layout/Navbar';
+import MyRoutes from './routes/Routes';
+import Sidebar from './components/layout/Sidebar';
+import { AuthProvider, useAuth } from './hooks/useAuth';
 import { CartProvider } from './context/CartContext';
 
 const AppContent = () => {
