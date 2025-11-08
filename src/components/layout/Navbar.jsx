@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
 import { FaSignInAlt, FaUserPlus } from 'react-icons/fa';
 import assets from '../../utils';
 import { Link } from 'react-router-dom';
 import CartSummary from '../views/Catalogo/CartSumary';
+import { useAuth } from '../../hooks/useAuth'; 
 
 const Navbar = () => {
     const { isLoggedIn, logout } = useAuth();

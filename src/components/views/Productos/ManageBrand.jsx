@@ -1,55 +1,19 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import InputModal from './InputModal';
-
-// Datos de prueba para simular marcas
-const mockMarcas = [
-    { id: 1, nombre: "Nike" },
-    { id: 2, nombre: "Adidas" },
-    { id: 3, nombre: "Puma" },
-    { id: 4, nombre: "Reebok" },
-    { id: 5, nombre: "Under Armour" },
-    { id: 6, nombre: "New Balance" },
-    { id: 7, nombre: "Asics" }
-];
+import { useMarcas } from '../../../hooks/useCatalog';
 
 const ManageBrand = () => {
-    const [data, setData] = useState([]);
+    const { marcas: data, loading, crear, actualizar, eliminar } = useMarcas();
     const [editId, setEditId] = useState(null);
     const [editDescripcion, setEditDescripcion] = useState('');
-
-    const getDatos = async () => {
-        try {
-            // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-            // const response = await api.get("/marcas/");
-            const response = { data: mockMarcas }; // Simulación temporal
-            console.log(response.data);
-            setData(response.data);
-        } catch (error) {
-            console.log("error al obtener los datos", error);
-        }
-    }
-    useEffect(() => {
-        getDatos();
-    }, [])
-
 
     const handleNameSubmit = async (name) => {
         if (name.nombre && name.nombre.trim() !== "") {
             try {
-                // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-                // const response = await api.post("/marcas/", { nombre: name.nombre });
-
-                // Simulación temporal - agregar marca localmente
-                const newBrand = {
-                    id: data.length > 0 ? Math.max(...data.map(item => item.id)) + 1 : 1,
-                    nombre: name.nombre
-                };
-                setData(prevData => [...prevData, newBrand]);
-
+                await crear({ nombre: name.nombre });
                 console.log("Se creó");
-                getDatos(); // Refrescar la lista de descuentos
             } catch (error) {
-                console.error("No se creó", error.response?.data);
+                console.error("No se creó", error);
             }
         } else {
             console.log("El nombre no es válido");
@@ -63,39 +27,21 @@ const ManageBrand = () => {
 
     const handleSave = async (id) => {
         try {
-            // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-            // const response = await api.put(`/marcas/${id}/`, {
-            //     nombre: editDescripcion
-            // });
-
-            // Simulación temporal - actualizar localmente
-            setData(prevData =>
-                prevData.map(item =>
-                    item.id === id ? { ...item, nombre: editDescripcion } : item
-                )
-            );
-
-            getDatos();
+            await actualizar(id, { nombre: editDescripcion });
             setEditId(null);
             console.log('Actualización exitosa');
         } catch (error) {
-            console.error('Error al actualizar el descuento', error.response?.data);
+            console.error('Error al actualizar la marca', error);
         }
     };
 
     const handleDelete = async (id) => {
         try {
-            // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-            // const response = await api.delete(`/marcas/${id}/`);
-
-            // Simulación temporal - eliminar localmente
-            setData(prevData => prevData.filter(item => item.id !== id));
-
-            getDatos();
+            await eliminar(id);
             setEditId(null);
-            console.log('Eliminacion exitosa');
+            console.log('Eliminación exitosa');
         } catch (error) {
-            console.error('Error al eliminar el descuento', error.response?.data);
+            console.error('Error al eliminar la marca', error);
         }
     };
 
@@ -103,6 +49,9 @@ const ManageBrand = () => {
         <div className="table-container">
             <h2 className="text-3xl text-center mb-3">Gestionar Marcas</h2>
             <InputModal initialValue="brand" onSubmit={handleNameSubmit} />
+            {loading ? (
+                <p>Cargando marcas...</p>
+            ) : (
             <table className="discount-table">
                 <thead>
                     <tr>
@@ -142,6 +91,7 @@ const ManageBrand = () => {
                     ))}
                 </tbody>
             </table>
+            )}
         </div>
     );
 };

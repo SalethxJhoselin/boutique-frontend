@@ -1,109 +1,205 @@
 import { useState } from 'react';
-import { MdLock, MdLockOpen } from 'react-icons/md';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-
-// Datos de prueba para simular respuesta de login exitoso
-const mockLoginSuccess = {
-    access_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_access_token",
-    refresh_token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.mock_refresh_token"
-};
-
-// Datos de prueba para simular respuesta de error
-const mockLoginError = {
-    error: "Credenciales inválidas",
-    message: "El correo o contraseña son incorrectos"
-};
+import { useNavigate, Link } from 'react-router-dom';
+import { Form, Input, Button, Card, message, Spin, Tabs, Row, Col } from 'antd';
+import { useAuth } from '../../hooks/useAuth';
 
 const Login = () => {
-    const [showPassword, setShowPassword] = useState(false);
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
-    const { login } = useAuth();
+  const [form] = Form.useForm();
+  const navigate = useNavigate();
+  const { login, register, loginLoading, registerLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState('login');
 
-    const onSubmit = async (event) => {
-        event.preventDefault(); // Evita que el formulario se recargue
-        //console.log('entreeeeeeeee');
-        try {
-            // SIMULACIÓN: Reemplazar esta línea con la petición real cuando esté disponible
-            // const response = await api.post("/auth/login/", {
-            //     email: email,
-            //     password: password,
-            // });
+  const handleLogin = async (values) => {
+    console.log('📝 Formulario enviado:', values); // Debug
+    
+    try {
+      await login(values.email, values.password);
+      message.success('¡Inicio de sesión exitoso!');
+      navigate('/');
+    } catch (error) {
+      console.error('❌ Error capturado en handleLogin:', error); // Debug
+      
+      const errorMsg = error.graphQLErrors?.[0]?.message 
+        || error.networkError?.message 
+        || error.message 
+        || 'Error al iniciar sesión';
+      
+      message.error(errorMsg);
+    }
+  };
 
-            // Simulación temporal - validar credenciales de prueba
-            let response;
-            if (email === "usuario@ejemplo.com" && password === "password123") {
-                response = { data: mockLoginSuccess };
-            } else {
-                throw new Error("Credenciales inválidas");
-            }
+  const handleRegister = async (values) => {
+    try {
+      if (values.password !== values.passwordConfirm) {
+        message.error('Las contraseñas no coinciden');
+        return;
+      }
+      await register(values.nombre, values.email, values.password, values.passwordConfirm);
+      message.success('¡Registro exitoso! Iniciando sesión...');
+      navigate('/');
+    } catch (error) {
+      message.error(error.message || 'Error en el registro');
+    }
+  };
 
-            const { access_token, refresh_token } = response.data;
-            console.log('token', refresh_token);
-            localStorage.setItem('token', refresh_token);
-            login();
-        } catch (error) {
-            setErrorMessage('Error al iniciar sesión. Verifica tus credenciales');
-            console.error('Error al iniciar sesión:', error.response?.data || error.message);
+  const items = [
+    {
+      key: 'login',
+      label: 'Iniciar Sesión',
+      children: (
+        <Spin spinning={loginLoading}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleLogin}
+            autoComplete="off"
+          >
+            <Form.Item
+              name="email"
+              label="Correo Electrónico"
+              rules={[
+                { required: true, message: 'Por favor ingresa tu correo' },
+                { type: 'email', message: 'Correo inválido' },
+              ]}
+            >
+              <Input 
+                placeholder="usuario@ejemplo.com"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label="Contraseña"
+              rules={[
+                { required: true, message: 'Por favor ingresa tu contraseña' },
+                { min: 6, message: 'La contraseña debe tener al menos 6 caracteres' },
+              ]}
+            >
+              <Input.Password 
+                placeholder="••••••••"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                block 
+                size="large"
+                loading={loginLoading}
+              >
+                Iniciar Sesión
+              </Button>
+            </Form.Item>
+          </Form>
+        </Spin>
+      ),
+    },
+    {
+      key: 'register',
+      label: 'Crear Cuenta',
+      children: (
+        <Spin spinning={registerLoading}>
+          <Form
+            form={form}
+            layout="vertical"
+            onFinish={handleRegister}
+            autoComplete="off"
+          >
+            <Form.Item
+              name="nombre"
+              label="Nombre Completo"
+              rules={[
+                { required: true, message: 'Por favor ingresa tu nombre' },
+                { min: 2, message: 'El nombre debe tener al menos 2 caracteres' },
+              ]}
+            >
+              <Input 
+                placeholder="Tu nombre completo"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="email"
+              label="Correo Electrónico"
+              rules={[
+                { required: true, message: 'Por favor ingresa tu correo' },
+                { type: 'email', message: 'Correo inválido' },
+              ]}
+            >
+              <Input 
+                placeholder="usuario@ejemplo.com"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="password"
+              label="Contraseña"
+              rules={[
+                { required: true, message: 'Por favor ingresa una contraseña' },
+                { min: 6, message: 'La contraseña debe tener al menos 6 caracteres' },
+              ]}
+            >
+              <Input.Password 
+                placeholder="••••••••"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="passwordConfirm"
+              label="Confirmar Contraseña"
+              rules={[
+                { required: true, message: 'Por favor confirma tu contraseña' },
+              ]}
+            >
+              <Input.Password 
+                placeholder="••••••••"
+                size="large"
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Button 
+                type="primary" 
+                htmlType="submit" 
+                block 
+                size="large"
+                loading={registerLoading}
+              >
+                Crear Cuenta
+              </Button>
+            </Form.Item>
+          </Form>
+        </Spin>
+      ),
+    },
+  ];
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-pink-100 to-blue-100 p-4">
+      <Card 
+        title={
+          <div className="text-center text-2xl font-bold text-pink-600">
+            Bienvenido a Boutique
+          </div>
         }
-    };
-    return (
-        <div className="min-h-screen flex items-center justify-center">
-            <div className="w-full max-w-md p-8">
-                <h2 className="text-3xl text-center mb-8">INICIAR SESIÓN</h2>
-                <form className="space-y-8" onSubmit={onSubmit}>
-                    <div className="relative border-b border-blue">
-                        <input
-                            type="email"
-                            id="correo"
-                            className="block w-full appearance-none bg-transparent border-none placeholder:text-gray-500 text-lg focus:outline-none focus:ring-0 peer"
-                            placeholder="CORREO"
-                            onChange={ev => setEmail(ev.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="relative border-b border-blue">
-                        <input
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            className="block w-full appearance-none bg-transparent border-none placeholder:text-gray-500 text-lg focus:outline-none focus:ring-0 peer"
-                            placeholder="CONTRASEÑA"
-                            onChange={ev => setPassword(ev.target.value)}
-                            required
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-2xl text-black"
-                        >
-                            {showPassword ? <MdLockOpen /> : <MdLock />}
-                        </button>
-                    </div>
-
-                    <div className="text-red-500 mb-6">{errorMessage}</div>
-                    <div>
-                        <button
-                            type="submit"
-                            className="w-full bg-blue text-white text-lg py-4 tracking-wider hover:bg-gray-800 transition-all duration-300"
-                        >
-                            ENTRAR
-                        </button>
-                    </div>
-
-                    <div className="text-center text-sm">
-                        <p className="text-gray-500">
-                            ¿No tienes una cuenta?{" "}
-                            <Link to="/register" className=" hover:text-black transition-colors">
-                                REGÍSTRATE
-                            </Link>
-                        </p>
-                    </div>
-                </form>
-            </div>
-        </div>
-    );
+        bordered={false}
+        className="shadow-xl w-full max-w-md"
+      >
+        <Tabs 
+          items={items}
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          centered
+        />
+      </Card>
+    </div>
+  );
 };
 
 export default Login;

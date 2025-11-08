@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../../../context/AuthContext';
+import { useAuth } from '../../../hooks/useAuth'; 
 import { useCart } from '../../../context/CartContext';
 
 // Datos de prueba para simular respuesta de búsqueda registrada

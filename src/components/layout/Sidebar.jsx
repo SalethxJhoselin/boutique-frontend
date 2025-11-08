@@ -1,18 +1,26 @@
 import React, { useState } from 'react';
-import { Layout, Menu } from 'antd';
-import { DownOutlined, RightOutlined } from '@ant-design/icons';
-import { NavLink } from 'react-router-dom';
+import { Layout, Menu, Avatar, Button } from 'antd';
+import { DownOutlined, RightOutlined, LogoutOutlined } from '@ant-design/icons';
+import { NavLink, useNavigate } from 'react-router-dom';
 import SidebarLinks from './SidebarLinks';
+import { useAuth } from '../../hooks/useAuth';
 
 const { Sider } = Layout;
 
 const Sidebar = () => { 
   const [openKeys, setOpenKeys] = useState([]);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const linksArray = SidebarLinks();
 
   const onOpenChange = (keys) => {
     const latestOpenKey = keys.find(key => !openKeys.includes(key));
     setOpenKeys(latestOpenKey ? [latestOpenKey] : []);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   return (
@@ -24,8 +32,12 @@ const Sidebar = () => {
       trigger={null}
     >
       <div className="flex flex-col justify-between h-full">
-        <div className="flex flex-col items-center justify-center space-y-2 mt-8">
-          <h2 className="text-blue">Bienvenido</h2>
+        <div className="flex flex-col items-center justify-center space-y-2 mt-8 border-b pb-4">
+          <Avatar size={48} src={null}>
+            {user?.nombre?.charAt(0).toUpperCase() || 'U'}
+          </Avatar>
+          <h2 className="text-blue text-sm font-bold text-center">{user?.nombre || 'Usuario'}</h2>
+          <p className="text-xs text-gray-500">{user?.rol || 'Cliente'}</p>
         </div>
         <Menu
           mode="inline"
@@ -54,6 +66,17 @@ const Sidebar = () => {
             )
           ))}
         </Menu>
+        <div className="border-t p-4">
+          <Button 
+            type="primary" 
+            danger 
+            block 
+            onClick={handleLogout}
+            icon={<LogoutOutlined />}
+          >
+            Cerrar Sesión
+          </Button>
+        </div>
       </div>
     </Sider>
   );
