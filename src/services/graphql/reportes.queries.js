@@ -28,7 +28,7 @@ export const REPORTE_GENERAL = gql`
           id
           nombre
           precio
-          imagenes
+          imagen_url
         }
         cantidadVendida
         montoTotal
@@ -132,7 +132,7 @@ export const PRODUCTOS_MAS_VENDIDOS = gql`
         id
         nombre
         precio
-        imagenes
+        imagen_url
         stock
       }
       cantidadVendida
@@ -180,7 +180,7 @@ export const PRODUCTOS_BAJO_STOCK = gql`
         nombre
         precio
         stock
-        imagenes
+        imagen_url
       }
       stockActual
       stockMinimo

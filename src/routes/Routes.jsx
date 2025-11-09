@@ -19,6 +19,12 @@ import ManageCategoryColor from '../components/views/Productos/ManageCategoryCol
 import ManageUsers from '../components/views/administrador/ManageUsers';
 import NotaVents from '../components/views/Inventario/NotaVents';
 import ProductListReal from '../components/views/Catalogo/ProductListReal';
+import Dashboard from '../components/views/Reportes/Dashboard';
+import ProductosBajoStock from '../components/views/Reportes/ProductosBajoStock';
+import ReporteInventario from '../components/views/Reportes/ReporteInventario';
+import ReporteVentas from '../components/views/Reportes/ReporteVentas';
+import ProductosMasVendidos from '../components/views/Reportes/ProductosMasVendidos';
+import ClientesActivos from '../components/views/Reportes/ClientesActivos';
 
 const MyRoutes = () => {
   const { isAuthenticated } = useAuth();
@@ -44,6 +50,16 @@ const MyRoutes = () => {
         <Route path="/notaIngreso" element={<ManageNotaIngreso />} />
         <Route path="/ventas" element={<NotaVents />} />
         <Route path="/perfil" element={<UserPerfil />} />
+        
+        {/* Rutas de Reportes - COMENTADAS HASTA QUE ESTÉ EL MICROSERVICIO DE DASHBOARDS */}
+        {/* 
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/productos-bajo-stock" element={<ProductosBajoStock />} />
+        <Route path="/reporte-inventario" element={<ReporteInventario />} />
+        <Route path="/reporte-ventas" element={<ReporteVentas />} />
+        <Route path="/productos-mas-vendidos" element={<ProductosMasVendidos />} />
+        <Route path="/clientes-activos" element={<ClientesActivos />} />
+        */}
       </Route>
 
       {/* Rutas admin */}

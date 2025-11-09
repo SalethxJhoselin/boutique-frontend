@@ -55,7 +55,7 @@ const SidebarLinks = () => [
     ],
   },
   {
-    label: "Compras y Ventas",
+    label: "Inventario",
     icon: <SettingOutlined />,
     subMenu: [
       {
@@ -65,13 +65,43 @@ const SidebarLinks = () => [
       {
         label: "Notas de venta",
         to: "/ventas",
-      }/*,
+      }
+      /* REPORTES COMENTADOS HASTA QUE ESTÉ EL MICROSERVICIO DE DASHBOARDS
       {
-        label: "Tipo de pago",
-        to: "/tipoPago",
-      }*/
+        label: "Productos bajo stock",
+        to: "/productos-bajo-stock",
+      },
+      {
+        label: "Reporte de inventario",
+        to: "/reporte-inventario",
+      }
+      */
     ],
   }
+  /* SECCIÓN DE REPORTES - DESCOMENTAR CUANDO ESTÉ EL MICROSERVICIO
+  ,{
+    label: "Reportes y Estadísticas",
+    icon: <FileAddOutlined />,
+    subMenu: [
+      {
+        label: "Dashboard general",
+        to: "/dashboard",
+      },
+      {
+        label: "Reporte de ventas",
+        to: "/reporte-ventas",
+      },
+      {
+        label: "Productos más vendidos",
+        to: "/productos-mas-vendidos",
+      },
+      {
+        label: "Clientes activos",
+        to: "/clientes-activos",
+      }
+    ],
+  }
+  */
 ];
 
 export default SidebarLinks;

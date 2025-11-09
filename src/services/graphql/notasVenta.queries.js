@@ -40,7 +40,7 @@ export const NOTA_VENTA = gql`
       id
       numero
       total
-      estado
+      estadoS
       observaciones
       createdAt
       updatedAt
@@ -62,7 +62,7 @@ export const NOTA_VENTA = gql`
           id
           nombre
           precio
-          imagenes
+          imagen_url
         }
       }
     }
@@ -86,7 +86,7 @@ export const MIS_NOTAS_VENTA = gql`
         producto {
           id
           nombre
-          imagenes
+          imagen_url
         }
       }
     }

@@ -14,7 +14,7 @@ export const MIS_BUSQUEDAS = gql`
         id
         nombre
         precio
-        imagenes
+        imagen_url
       }
     }
   }
@@ -26,7 +26,7 @@ export const PRODUCTOS_POPULARES = gql`
       id
       nombre
       precio
-      imagenes
+      imagen_url
       stock
     }
   }

@@ -1,9 +1,12 @@
 import { Table, Button, Tag, Space, Modal, notification, Statistic, Row, Col, Card } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, EyeOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, CloseCircleOutlined, EyeOutlined, PlusOutlined } from '@ant-design/icons';
+import { useState } from 'react';
 import { useNotasVenta, useEstadisticasVentas } from '../../../hooks/useNotasVenta';
+import CreateNotaVentaModal from './CreateNotaVentaModal';
 
 const NotaVentas = () => {
-    const { notasVenta, loading, procesarNotaVenta, cancelarNotaVenta, refetch } = useNotasVenta();
+    const [modalVisible, setModalVisible] = useState(false);
+    const { notasVenta, loading, procesarNotaVenta, cancelarNotaVenta, crearNotaVenta, refetch } = useNotasVenta();
     const { estadisticas, loading: loadingStats } = useEstadisticasVentas();
 
     const handleProcesar = (notaId) => {
@@ -49,6 +52,20 @@ const NotaVentas = () => {
         });
     };
 
+    const handleCreate = async (input) => {
+        try {
+            await crearNotaVenta(input.usuarioId, input.detalles, input.observaciones);
+            notification.success({ message: 'Nota de venta creada correctamente' });
+            setModalVisible(false);
+            refetch();
+        } catch (error) {
+            notification.error({ 
+                message: 'Error al crear nota de venta',
+                description: error.message 
+            });
+        }
+    };
+
     const handleVerDetalles = (nota) => {
         Modal.info({
             title: `Detalles de ${nota.numero}`,
@@ -56,10 +73,10 @@ const NotaVentas = () => {
             content: (
                 <div>
                     <p><strong>Cliente:</strong> {nota.usuario?.nombre || nota.usuario?.email}</p>
-                    <p><strong>Fecha:</strong> {new Date(nota.fechaCreacion).toLocaleString()}</p>
+                    <p><strong>Fecha:</strong> {new Date(nota.createdAt).toLocaleString()}</p>
                     <p><strong>Estado:</strong> <Tag color={
-                        nota.estado === 'procesada' ? 'green' : 
-                        nota.estado === 'cancelada' ? 'red' : 'blue'
+                        nota.estado === 'PROCESADA' ? 'green' : 
+                        nota.estado === 'CANCELADA' ? 'red' : 'blue'
                     }>{nota.estado}</Tag></p>
                     {nota.observaciones && <p><strong>Observaciones:</strong> {nota.observaciones}</p>}
                     
@@ -101,8 +118,8 @@ const NotaVentas = () => {
         },
         {
             title: 'Fecha',
-            dataIndex: 'fechaCreacion',
-            key: 'fechaCreacion',
+            dataIndex: 'createdAt',
+            key: 'createdAt',
             render: (fecha) => new Date(fecha).toLocaleString(),
             width: 180,
         },
@@ -134,8 +151,8 @@ const NotaVentas = () => {
             dataIndex: 'estado',
             key: 'estado',
             render: (estado) => {
-                const color = estado === 'procesada' ? 'green' : 
-                             estado === 'cancelada' ? 'red' : 'blue';
+                const color = estado === 'PROCESADA' ? 'green' : 
+                             estado === 'CANCELADA' ? 'red' : 'blue';
                 return <Tag color={color}>{estado?.toUpperCase()}</Tag>;
             },
             width: 120,
@@ -152,7 +169,7 @@ const NotaVentas = () => {
                     >
                         Ver
                     </Button>
-                    {record.estado === 'pendiente' && (
+                    {record.estado === 'PENDIENTE' && (
                         <>
                             <Button 
                                 type="primary" 
@@ -180,7 +197,17 @@ const NotaVentas = () => {
 
     return (
         <div>
-            <h2 className="text-2xl font-bold mb-6">Gestión de Notas de Venta</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+                <h2 className="text-2xl font-bold">Gestión de Notas de Venta</h2>
+                <Button 
+                    type="primary" 
+                    icon={<PlusOutlined />}
+                    onClick={() => setModalVisible(true)}
+                    size="large"
+                >
+                    Nueva Nota de Venta
+                </Button>
+            </div>
 
             {estadisticas && (
                 <Row gutter={16} style={{ marginBottom: 24 }}>
@@ -233,6 +260,12 @@ const NotaVentas = () => {
                 pagination={{ pageSize: 10 }}
                 className="mt-6"
                 scroll={{ x: 1200, y: 400 }}
+            />
+
+            <CreateNotaVentaModal
+                visible={modalVisible}
+                onCancel={() => setModalVisible(false)}
+                onCreate={handleCreate}
             />
         </div>
     );
