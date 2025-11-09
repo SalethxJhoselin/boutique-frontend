@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { FaSignInAlt, FaUserPlus } from 'react-icons/fa';
-import assets from '../../utils';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../hooks/useAuth';
+import assets from '../../utils';
 import CartSummary from '../views/Catalogo/CartSumary';
-import { useAuth } from '../../hooks/useAuth'; 
 
 const Navbar = () => {
     const { isLoggedIn, logout } = useAuth();
@@ -17,7 +17,7 @@ const Navbar = () => {
 
     return (
         <header className="fixed top-0 left-0 right-0 bg-transparent w-full py-3 sm:px-10 px-5 flex justify-between items-center">
-            <Link to="/catalog"><img src={assets.logo} alt="Store" width={50} className="cursor-pointer" /></Link>
+            <Link to="/"><img src={assets.logo} alt="Store" width={50} className="cursor-pointer" /></Link>
             <CartSummary />
             <form onSubmit={handleSearch} className="flex flex-1 justify-center mx-4">
                 <input

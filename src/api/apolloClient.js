@@ -1,4 +1,4 @@
-import { ApolloClient, InMemoryCache, HttpLink, ApolloLink } from '@apollo/client';
+import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 
 // Link de errores
@@ -15,7 +15,8 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
 
 // Link HTTP
 const httpLink = new HttpLink({
-  uri: 'http://localhost:3001/graphql',
+  //uri: 'http://localhost:3001/graphql',
+  uri: 'https://boutique-back-api.onrender.com/graphql',
   credentials: 'include',
 });
 

@@ -1,10 +1,10 @@
+import { useMutation } from '@apollo/client';
 import { Button, Input, Modal, Select, Spin, message } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { FaPlus } from 'react-icons/fa';
-import { useMutation } from '@apollo/client';
+import { useCategorias, useColores, useMarcas, useTallas } from '../../../hooks/useCatalog';
 import { CREATE_PRODUCT } from '../../../services/graphql/products.queries';
-import { useCategorias, useMarcas, useColores, useTallas } from '../../../hooks/useCatalog';
 
 const { Option } = Select;
 
@@ -21,18 +21,12 @@ const CreateProduct = ({ onSubmit }) => {
         tallas: [],
     });
     const [uploadingImage, setUploadingImage] = useState(false);
+    const { categorias, loading: loadingCategorias } = useCategorias();
+    const { marcas, loading: loadingMarcas } = useMarcas();
+    const { colores, loading: loadingColores } = useColores();
+    const { tallas, loading: loadingTallas } = useTallas();
 
-    // GraphQL Hooks - DATOS REALES DEL BACKEND
-    const { data: categoriasData, loading: loadingCategorias } = useCategorias();
-    const { data: marcasData, loading: loadingMarcas } = useMarcas();
-    const { data: coloresData, loading: loadingColores } = useColores();
-    const { data: tallasData, loading: loadingTallas } = useTallas();
     const [crearProducto, { loading: creatingProduct }] = useMutation(CREATE_PRODUCT);
-
-    const categorias = categoriasData?.categorias || [];
-    const marcas = marcasData?.marcas || [];
-    const colores = coloresData?.colores || [];
-    const tallas = tallasData?.tallas || [];
 
     const showModal = () => {
         setIsModalOpen(true);

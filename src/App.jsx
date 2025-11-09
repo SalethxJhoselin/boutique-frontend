@@ -1,21 +1,21 @@
 // src/App.jsx
-import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
 import { ApolloProvider } from '@apollo/client';
 import apolloClient from './api/apolloClient';
 import Navbar from './components/layout/Navbar';
-import MyRoutes from './routes/Routes';
 import Sidebar from './components/layout/Sidebar';
-import { AuthProvider, useAuth } from './hooks/useAuth'; 
 import { CartProvider } from './context/CartContext';
+import { AuthProvider, useAuth } from './hooks/useAuth';
+import MyRoutes from './routes/Routes';
 
 const AppContent = () => {
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   return (
     <div className="flex h-screen bg-white transition-all duration-300">
-      {isAuthenticated && <Sidebar />}
+
+      {isAuthenticated && user.rolNombre === 'admin' && <Sidebar />}
       <div className="flex-1 flex flex-col overflow-x-hidden">
         <Navbar />
         <div className="pt-16">
