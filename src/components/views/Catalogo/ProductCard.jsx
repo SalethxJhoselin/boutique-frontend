@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useAuth } from '../../../hooks/useAuth'; 
 import { useCart } from '../../../context/CartContext';
+import { useAuth } from '../../../hooks/useAuth';
 import { useBusquedas } from '../../../hooks/useBusquedas';
 
 const ProductCard = ({ product, onSelect }) => {
@@ -38,7 +38,6 @@ const ProductCard = ({ product, onSelect }) => {
 
   const handleAddToCart = () => {
     addToCart(product, Number(quantity));
-    console.log(`Producto: ${product.name}, Cantidad: ${quantity}`);
   };
 
   return (
@@ -52,19 +51,23 @@ const ProductCard = ({ product, onSelect }) => {
         <p className="line-through text-gray-400">${product.originalPrice.toFixed(2)}</p>
       )}
 
-      <p className="text-gray-500">Talla: {product.size}</p>
+      <p className="text-gray-500">
+        Talla: {product.sizes?.join(', ') || 'No disponible'}
+      </p>
       <p className="text-gray-500">Marca: {product.brand}</p>
-      <p className="text-gray-500">Color: {product.color}</p>
+      <p className="text-gray-500">
+        Color: {product.colors?.join(', ') || 'No disponible'}
+      </p>
 
-      {product.inventory > 0 ? (
-        <p className="text-green-500">En stock: {product.inventory}</p>
+      {product.stock > 0 ? (
+        <p className="text-green-500">En stock: {product.stock}</p>
       ) : (
         <p className="text-red-500">Agotado</p>
       )}
 
       <button
         className="bg-blue text-white py-2 px-4 rounded mt-4 mr-4"
-        onClick={handleViewDetails} // Usar la nueva función
+        onClick={handleViewDetails}
       >
         Ver Detalles
       </button>
