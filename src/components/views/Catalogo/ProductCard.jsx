@@ -45,7 +45,11 @@ const ProductCard = ({ product, onSelect }) => {
       <img src={product.image} alt={product.name} className="w-full h-48 object-cover mb-4" />
       <h3 className="text-xl font-semibold">{product.name}</h3>
 
-      {product.discount && <p className="text-red-500">{product.discount}</p>}
+      {product.discount && (
+        <p className="text-red-500">
+          {product.discount.nombre} {product.discount.porcentaje}%
+        </p>
+      )}
       <p className="text-gray-600">${product.price.toFixed(2)}</p>
       {product.price !== product.originalPrice && (
         <p className="line-through text-gray-400">${product.originalPrice.toFixed(2)}</p>
