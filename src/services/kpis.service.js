@@ -1,7 +1,7 @@
 // services/kpisService.js
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3002/api/kpis'; // Ajusta según tu backend
+const API_BASE_URL = 'https://metricas-service-production.up.railway.app/api/kpis'; // Ajusta según tu backend
 
 class KpisService {
   constructor() {
