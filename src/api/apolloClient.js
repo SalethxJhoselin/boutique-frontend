@@ -15,9 +15,9 @@ const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) 
 
 // Link HTTP
 const httpLink = new HttpLink({
-  //uri: 'http://localhost:3001/graphql',
+  //uri: 'https://mi-api-nestjs.loca.lt/graphql',
   uri: 'https://boutique-back-api.onrender.com/graphql',
-  credentials: 'include',
+  //credentials: 'include',
 });
 
 // Link para agregar token a headers

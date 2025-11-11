@@ -1,34 +1,29 @@
-import { Route, Routes, Navigate } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import ProtectedRoute from '../components/layout/ProtectedRoute';
-import { useAuth } from '../hooks/useAuth';
-import UserPerfil from '../components/users/UserPerfil';
-import ManageRoles from '../components/views/administrador/ManageRoles';
-import ManageUsuarios from '../components/views/administrador/ManageUsuarios';
-import Login from '../components/users/Login';
-import ManagePermissions from '../components/views/administrador/ManagePermissions';
 import Catalog from '../components/pages/Catalog';
-import ManageDiscount from '../components/views/Productos/ManageDiscount';
-import ManageSize from '../components/views/Productos/ManageSize';
-import ManageColor from '../components/views/Productos/ManageColor';
-import ManageBrand from '../components/views/Productos/ManageBrand';
-import ManageCategory from '../components/views/Productos/ManageCategory';
-import ManageProduct from '../components/views/Productos/ManageProducts';
+import ClasificarImagenPage from '../components/pages/ClasificarImagenPage';
+import Login from '../components/users/Login';
+import UserPerfil from '../components/users/UserPerfil';
+import ManagePermissions from '../components/views/administrador/ManagePermissions';
+import ManageRoles from '../components/views/administrador/ManageRoles';
+import ManageUsers from '../components/views/administrador/ManageUsers';
+import ManageUsuarios from '../components/views/administrador/ManageUsuarios';
+import ProductListReal from '../components/views/Catalogo/ProductListReal';
 import PurchaseReceipt from '../components/views/Catalogo/PurchaseReceipt';
 import ManageNotaIngreso from '../components/views/Inventario/ManageNotaIngreso';
-import ManageCategoryColor from '../components/views/Productos/ManageCategoryColor';
-import ManageUsers from '../components/views/administrador/ManageUsers';
 import NotaVents from '../components/views/Inventario/NotaVents';
-import ProductListReal from '../components/views/Catalogo/ProductListReal';
-import Dashboard from '../components/views/Reportes/Dashboard';
-import ProductosBajoStock from '../components/views/Reportes/ProductosBajoStock';
-import ReporteInventario from '../components/views/Reportes/ReporteInventario';
-import ReporteVentas from '../components/views/Reportes/ReporteVentas';
-import ProductosMasVendidos from '../components/views/Reportes/ProductosMasVendidos';
-import ClientesActivos from '../components/views/Reportes/ClientesActivos';
+import ManageBrand from '../components/views/Productos/ManageBrand';
+import ManageCategory from '../components/views/Productos/ManageCategory';
+import ManageCategoryColor from '../components/views/Productos/ManageCategoryColor';
+import ManageColor from '../components/views/Productos/ManageColor';
+import ManageDiscount from '../components/views/Productos/ManageDiscount';
+import ManageProduct from '../components/views/Productos/ManageProducts';
+import ManageSize from '../components/views/Productos/ManageSize';
+import { useAuth } from '../hooks/useAuth';
 
 const MyRoutes = () => {
   const { isAuthenticated } = useAuth();
-  
+
   return (
     <Routes>
       {/* Rutas públicas */}
@@ -50,7 +45,8 @@ const MyRoutes = () => {
         <Route path="/notaIngreso" element={<ManageNotaIngreso />} />
         <Route path="/ventas" element={<NotaVents />} />
         <Route path="/perfil" element={<UserPerfil />} />
-        
+        <Route path="/clasificar-imagen" element={<ClasificarImagenPage />} />
+
         {/* Rutas de Reportes - COMENTADAS HASTA QUE ESTÉ EL MICROSERVICIO DE DASHBOARDS */}
         {/* 
         <Route path="/dashboard" element={<Dashboard />} />

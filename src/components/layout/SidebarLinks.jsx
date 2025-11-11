@@ -1,4 +1,4 @@
-import { AimOutlined, SolutionOutlined, SettingOutlined, FileAddOutlined, TeamOutlined } from '@ant-design/icons';
+import { RobotOutlined, SettingOutlined, TeamOutlined } from '@ant-design/icons';
 import { FaBox } from 'react-icons/fa';
 
 const SidebarLinks = () => [
@@ -77,7 +77,7 @@ const SidebarLinks = () => [
       }
       */
     ],
-  }
+  },
   /* SECCIÓN DE REPORTES - DESCOMENTAR CUANDO ESTÉ EL MICROSERVICIO
   ,{
     label: "Reportes y Estadísticas",
@@ -102,6 +102,17 @@ const SidebarLinks = () => [
     ],
   }
   */
+  {
+    label: "Inteligencia Artificial",
+    icon: <RobotOutlined />,
+    subMenu: [
+      {
+        label: "Clasificar Imágenes",
+        to: "/clasificar-imagen",
+      }
+      // Puedes agregar más opciones de IA aquí después
+    ],
+  }
 ];
 
 export default SidebarLinks;
