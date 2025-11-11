@@ -12,6 +12,7 @@ import ProductListReal from '../components/views/Catalogo/ProductListReal';
 import PurchaseReceipt from '../components/views/Catalogo/PurchaseReceipt';
 import ManageNotaIngreso from '../components/views/Inventario/ManageNotaIngreso';
 import NotaVents from '../components/views/Inventario/NotaVents';
+import Metrics from '../components/views/metricas/Metrics';
 import ManageBrand from '../components/views/Productos/ManageBrand';
 import ManageCategory from '../components/views/Productos/ManageCategory';
 import ManageCategoryColor from '../components/views/Productos/ManageCategoryColor';
@@ -46,6 +47,7 @@ const MyRoutes = () => {
         <Route path="/ventas" element={<NotaVents />} />
         <Route path="/perfil" element={<UserPerfil />} />
         <Route path="/clasificar-imagen" element={<ClasificarImagenPage />} />
+        <Route path="/metrics" element={<Metrics />} />
 
         {/* Rutas de Reportes - COMENTADAS HASTA QUE ESTÉ EL MICROSERVICIO DE DASHBOARDS */}
         {/* 

@@ -112,6 +112,17 @@ const SidebarLinks = () => [
       }
       // Puedes agregar más opciones de IA aquí después
     ],
+  },
+  {
+    label: "Dashboard de Métricas",
+    icon: <RobotOutlined />,
+    subMenu: [
+      {
+        label: "Metricas",
+        to: "/metrics",
+      }
+      // Puedes agregar más opciones de IA aquí después
+    ],
   }
 ];
 
