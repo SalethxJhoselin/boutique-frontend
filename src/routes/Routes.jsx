@@ -20,6 +20,7 @@ import ManageColor from '../components/views/Productos/ManageColor';
 import ManageDiscount from '../components/views/Productos/ManageDiscount';
 import ManageProduct from '../components/views/Productos/ManageProducts';
 import ManageSize from '../components/views/Productos/ManageSize';
+import ReporteIA from '../components/views/reporte/ReporteIA';
 import { useAuth } from '../hooks/useAuth';
 
 const MyRoutes = () => {
@@ -48,6 +49,7 @@ const MyRoutes = () => {
         <Route path="/perfil" element={<UserPerfil />} />
         <Route path="/clasificar-imagen" element={<ClasificarImagenPage />} />
         <Route path="/metrics" element={<Metrics />} />
+        <Route path="/reporte-ia" element={<ReporteIA />} />
 
         {/* Rutas de Reportes - COMENTADAS HASTA QUE ESTÉ EL MICROSERVICIO DE DASHBOARDS */}
         {/* 

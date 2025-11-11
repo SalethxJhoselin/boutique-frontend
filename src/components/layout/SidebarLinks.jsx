@@ -120,6 +120,10 @@ const SidebarLinks = () => [
       {
         label: "Metricas",
         to: "/metrics",
+      },
+      {
+        label: "Reportes IA",
+        to: "/reporte-ia",
       }
       // Puedes agregar más opciones de IA aquí después
     ],
